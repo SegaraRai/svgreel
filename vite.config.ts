@@ -49,6 +49,24 @@ export default defineConfig({
       examples: {
         command: "vp run svgreel#examples",
       },
+      // Long-running: rebuilds on save and serves the preview with live param controls. Through
+      // tsx, so edits to packages/core/src apply on the next rebuild too.
+      "examples:watch": {
+        command: "vp run svgreel#examples:watch",
+        cache: false,
+      },
+      // The template's compositions run svgreel's built CLI (dist/), so these build it first.
+      // Extra arguments pass through: `vp run template:build profile --param accent=#f00`.
+      "template:build": {
+        command: "vp run my-svgreel#build",
+        dependsOn: ["svgreel#build"],
+      },
+      // Long-running. Changes to packages/core need a restart (it runs the built CLI).
+      "template:watch": {
+        command: "vp run my-svgreel#watch",
+        cache: false,
+        dependsOn: ["svgreel#build"],
+      },
     },
   },
 });

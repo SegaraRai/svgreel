@@ -45,7 +45,14 @@ pnpm exec vp run fix       # auto-fix formatting (vp check --fix, stillwind fmt)
 pnpm exec vp run test      # every workspace's unit tests (imports from "vite-plus/test")
 pnpm exec vp run build     # svgreel (dist/), the template's compositions, the website
 pnpm exec vp run examples  # packages/core/examples → packages/core/examples-dist/index.html
+pnpm exec vp run examples:watch   # same, rebuilt on save; preview with live param controls on localhost
+pnpm exec vp run template:build   # svgreel, then template/compositions → template/dist (args pass through)
+pnpm exec vp run template:watch   # same, rebuilt on save, served like examples:watch
 ```
+
+The watch tasks run until stopped. `examples:watch` runs the CLI from source, so edits to
+`packages/core/src` apply on the next rebuild; `template:watch` uses the built CLI and needs a
+restart after them. Agents shouldn't start them unprompted (they hold a port).
 
 The template and apps type check against svgreel's built `dist/` types, so a bare `vp check`
 fails until svgreel is built; the `check` task builds it first. Inside one package, `pnpm build`,
