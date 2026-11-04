@@ -46,4 +46,5 @@ its root is shown on the profile page.
 ## Size budget
 
 Animated SVGs here are usually 100–500 KB. GitHub serves files of a few MB without trouble, but
-smaller loads faster. If a file grows past ~1 MB, look at [rules.md](rules.md#6-keep-keyframes-cheap).
+smaller loads faster. Embedded images (`<Image>`) count in full in every file. If a file grows
+past ~1 MB, look at [rules.md](rules.md#6-keep-keyframes-cheap).

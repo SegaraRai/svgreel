@@ -146,7 +146,30 @@ All of these are pure functions of the frame number.
 | `<ArcProgress r value from startAngle sweep track>`                                              | Ring, gauge or donut segment that fills along its arc. `arcPath()` gives the path data                                                                                                                                                                                        |
 | `<FollowPath d progress rotate angleOffset>`                                                     | Moves children along a path, optionally facing the direction of travel                                                                                                                                                                                                        |
 | `<Terminal lines width height font theme prompt speed>`                                          | Terminal window replaying typed commands and output, scrolling when full. `terminalTimeline()` gives when each line starts                                                                                                                                                    |
+| `<Image src x y width height fit radius style>`                                                  | Embedded raster (or SVG) image, cropped to `fit` (`cover contain fill`) and rounded by `radius` (half the size for a circle). See "Images" below                                                                                                                              |
 | `useSvgId(prefix)`                                                                               | Unique id for gradients, masks, clip paths                                                                                                                                                                                                                                    |
+
+## Images
+
+```tsx
+const avatar = await fetchImage("https://github.com/octocat.png?size=192"); // top of the module
+
+<Image src={avatar} x={40} y={40} width={96} height={96} radius={48} />
+<Image src="images/screenshot.png" width={480} height={300} fit="contain" />
+<Image src={new URL("./photo.jpg", import.meta.url)} width={200} height={120} radius={12} />
+```
+
+- An SVG shown as an image (README, `<img>`) can't load anything, so images are embedded as
+  `data:` URIs. `src` is a path relative to the project root, a file URL, or a `data:` URI;
+  PNG, JPEG, GIF, WebP, AVIF and SVG work. An `http(s)` URL in `src` is an error: download it
+  with `fetchImage(url)` at build time instead.
+- `fetchImage(url)` downloads once per build and returns a `data:` URI. `loadImage(src)` returns
+  one for a file, e.g. for a raw `<image href>` or a `<pattern>`.
+- The bytes go in unchanged, in every output file. Use an image about twice its displayed size
+  (GitHub avatars take `?size=`), and prefer WebP or JPEG for photos. The build warns above
+  150 KB. The same image at the same size is stored once per file, however often it is drawn.
+- Animate it through `style` (opacity, transform), which goes on a wrapping `<g>` so the rounded
+  clip moves with it. An animated GIF plays at its own speed, out of step with the timeline.
 
 ## Fonts
 

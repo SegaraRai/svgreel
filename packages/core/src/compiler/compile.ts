@@ -246,7 +246,7 @@ function keyframesRule(prop: string, kfs: Keyframe[], ctx: Ctx): string {
   return name;
 }
 
-/** Adds xmlns/a11y/<style>, and moves repeated outlines into <defs> referenced by <use>. */
+/** Adds xmlns/a11y/<style>, and moves repeated outlines and images into <defs> referenced by <use>. */
 function finish(root: ENode, comp: Composition, variant: Variant, css: string): string {
   const svg: ENode = {
     ...root,
@@ -267,7 +267,16 @@ function finish(root: ENode, comp: Composition, variant: Variant, css: string): 
     svg.attrs.set("aria-label", comp.title);
   }
 
-  const defs = dedupePaths(svg);
+  walk(svg, (n) => {
+    const href = n.attrs.get("href") ?? n.attrs.get("xlink:href");
+    if ((n.tag === "image" || n.tag === "feImage") && href && !href.startsWith("data:") && !href.startsWith("#")) {
+      throw new Error(
+        `<${n.tag} href="${href.slice(0, 80)}"> won't load: SVGs shown as images can't fetch files. ` +
+          "Use <Image src> (a file path, or await fetchImage(url) for a URL) to embed it.",
+      );
+    }
+  });
+  const defs = [...dedupePaths(svg), ...dedupeImages(svg)];
   const head: ENode[] = [];
   if (comp.title) {
     head.push({
@@ -297,16 +306,76 @@ function finish(root: ENode, comp: Composition, variant: Variant, css: string): 
   return serialize(svg);
 }
 
+function walk(n: ENode, fn: (n: ENode) => void) {
+  fn(n);
+  for (const c of n.children) {
+    if (typeof c !== "string") {
+      walk(c, fn);
+    }
+  }
+}
+
+/**
+ * Embedded images (data: URIs) used more than once with the same size are stored once: the
+ * <image> moves into <defs> at (0, 0) and each use becomes a <use x y> carrying the rest.
+ */
+function dedupeImages(root: ENode): ENode[] {
+  const MOVED = ["href", "width", "height", "preserveAspectRatio"];
+  const keyOf = (n: ENode) => {
+    const href = n.attrs.get("href");
+    if (
+      n.tag !== "image" ||
+      n.attrs.has("id") ||
+      !href?.startsWith("data:") ||
+      !n.attrs.has("width") ||
+      !n.attrs.has("height") ||
+      ["x", "y", "width", "height"].some((k) => n.style.has(k))
+    ) {
+      return undefined;
+    }
+    return MOVED.map((k) => n.attrs.get(k) ?? "").join("\n");
+  };
+  const counts = new Map<string, number>();
+  walk(root, (n) => {
+    const key = keyOf(n);
+    if (key) {
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  });
+  const ids = new Map<string, string>();
+  const defs: ENode[] = [];
+  walk(root, (n) => {
+    const key = keyOf(n);
+    if (!key || counts.get(key)! < 2) {
+      return;
+    }
+    let id = ids.get(key);
+    if (!id) {
+      id = `i${ids.size.toString(36)}`;
+      ids.set(key, id);
+      const attrs = new Map([["id", id]]);
+      for (const k of MOVED) {
+        const v = n.attrs.get(k);
+        if (v !== undefined) {
+          attrs.set(k, v);
+        }
+      }
+      defs.push({
+        tag: "image",
+        attrs,
+        style: new Map(),
+        children: [],
+      });
+    }
+    n.tag = "use";
+    const rest = [...n.attrs].filter(([k]) => !MOVED.includes(k));
+    n.attrs = new Map([["href", `#${id}`], ...rest]);
+  });
+  return defs;
+}
+
 function dedupePaths(root: ENode): ENode[] {
   const counts = new Map<string, number>();
-  const walk = (n: ENode, fn: (n: ENode) => void) => {
-    fn(n);
-    for (const c of n.children) {
-      if (typeof c !== "string") {
-        walk(c, fn);
-      }
-    }
-  };
   // pathLength only works on the <path> itself (a <use> ignores it), so normalised dashes such as
   // <DrawPath>'s keep their own copy of the outline.
   const shareable = (n: ENode) => n.tag === "path" && !n.attrs.has("id") && !n.attrs.has("pathLength");

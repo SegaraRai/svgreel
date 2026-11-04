@@ -21,6 +21,7 @@ export { noise1D, noise2D, random } from "./animation/random.js";
 export { measureSpring, spring, type SpringConfig } from "./animation/spring.js";
 export { useSvgId } from "./components/useSvgId.js";
 export { fontsource } from "./fontsource.js";
+export { fetchImage, loadImage } from "./image.js";
 
 export { Appear } from "./components/Appear.js";
 export { ArcProgress, arcPath } from "./components/ArcProgress.js";
@@ -29,6 +30,7 @@ export { Camera, cameraRect, cameraTransform, type Rect, type Shot } from "./com
 export { CodeBlock, codeBlockHeight, highlight, type CodeTheme } from "./components/CodeBlock.js";
 export { DrawPath } from "./components/DrawPath.js";
 export { FollowPath } from "./components/FollowPath.js";
+export { Image, type ImageProps } from "./components/Image.js";
 export { Marquee, marqueeSpeed } from "./components/Marquee.js";
 export { Once } from "./components/Once.js";
 export { Pill, PillRow, pillWidth } from "./components/Pill.js";

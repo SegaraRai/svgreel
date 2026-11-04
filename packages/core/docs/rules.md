@@ -87,3 +87,9 @@ Every build also writes `*.still.svg` (the `still` value of the `motion` variant
 component can show a better static version, e.g. everything at once. A still file has one frame,
 so this branch may render a different tree. The animated SVG itself also stops at `stillFrame`
 under `prefers-reduced-motion` (`<Once>` content shows its last frame).
+
+## 9. Embed images
+
+An SVG shown as an image loads nothing from the network, so `<image href="https://…">` stays
+blank. Use `<Image>` (or `loadImage()` / `fetchImage()` for a raw `<image>`), which embeds the
+file as a `data:` URI. Keep images small: they are copied into every output file.

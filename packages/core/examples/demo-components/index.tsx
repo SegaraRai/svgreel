@@ -9,6 +9,7 @@ import {
   DrawPath,
   fontsource,
   GlowOrb,
+  Image,
   PillRow,
   presence,
   ProgressBar,
@@ -144,8 +145,10 @@ function Demo() {
         ))}
       </Cell>
 
-      <Cell x={810} y={40} label="<Rings>">
+      <Cell x={810} y={40} label="<Rings> + <Image>">
         <Rings x={180} y={120} r={80} color={C.accent} muted={C.text} speed={3} />
+        {/* For a GitHub avatar: src={await fetchImage("https://github.com/<user>.png?size=192")} */}
+        <Image src={new URL("./avatar.png", import.meta.url)} x={132} y={72} width={96} height={96} radius={48} />
       </Cell>
 
       <Cell x={30} y={380} label="<DrawPath>">
