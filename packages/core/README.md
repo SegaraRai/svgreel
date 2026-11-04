@@ -12,9 +12,16 @@ into **self-contained animated SVGs**: CSS keyframes for motion, glyph outlines 
 JavaScript, no web fonts, nothing external, so they work inside a GitHub README `<img>`.
 Every build also writes a still version for viewers who prefer reduced motion.
 
-**Want a profile banner without reading any of this?** Start from
-[svgreel-template](https://github.com/SegaraRai/svgreel-template) and let an AI agent do the
-work: its README has a prompt to paste.
+<!-- npm doesn't render GitHub alerts ([!TIP] shows up as text), so this is a plain blockquote. -->
+
+> **💡 Made for AI coding agents.** To make your own animated SVG without reading any of this,
+> paste this into Claude Code, Codex, Cursor or a similar agent. It sets up
+> [svgreel-template](https://github.com/SegaraRai/svgreel-template) and asks you what to make.
+>
+> ```text
+> Make me an animated SVG with the template at https://github.com/SegaraRai/svgreel-template.
+> Read its AGENTS.md first and follow it. Start by asking me what to make.
+> ```
 
 ## Quick look
 

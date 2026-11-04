@@ -106,6 +106,8 @@ preview when the change is visible.
   catalog. Its pnpm-workspace.yaml repeats the supply-chain settings for users.
 - It's a user-facing starter: its README and AGENTS.md are written for template users and their
   agents, not for svgreel development.
+- The "starting from nothing" agent prompt in its README is repeated in the root README,
+  `packages/core/README.md` and `apps/website/src/pages/index.astro`. Keep the four in step.
 - Its README shows the svgreel logo from `https://svgreel.roundtrip.dev/brand/` (apps/website), so
   copies of the template don't carry logo files.
 

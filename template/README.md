@@ -18,6 +18,11 @@ keyframes for motion, glyph outlines for text. No JavaScript, no web fonts, noth
 it works inside a GitHub README `<img>`. Every build also produces a still version for viewers
 who prefer reduced motion.
 
+> [!TIP]
+> This template is made to be used with an AI coding agent. To start, copy a prompt from
+> [**Use it with an AI agent**](#use-it-with-an-ai-agent) below and paste it into Claude Code,
+> Codex, Cursor or a similar agent. It sets everything up and asks you what to make.
+
 ## Use it with an AI agent
 
 Paste one of these into Claude Code, Codex, Cursor or a similar coding agent.

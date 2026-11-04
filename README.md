@@ -22,16 +22,22 @@
 </picture>
 </p>
 
+> [!TIP]
+> svgreel is made to be used with an AI coding agent. To make your own animated SVG, paste this
+> into Claude Code, Codex, Cursor or a similar agent. It sets everything up and asks you what to
+> make.
+>
+> ```text
+> Make me an animated SVG with the template at https://github.com/SegaraRai/svgreel-template.
+> Read its AGENTS.md first and follow it. Start by asking me what to make.
+> ```
+
 | Directory                      | What it is                                                                                             |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | [packages/core](packages/core) | The [`svgreel`](https://www.npmjs.com/package/svgreel) npm package: compiler, components, CLI, preview |
 | [template](template)           | The contents of [svgreel-template](https://github.com/SegaraRai/svgreel-template), synced by CI        |
 | [apps/localize](apps/localize) | A Cloudflare Worker that serves the SVG matching the viewer's language                                 |
 | [apps/website](apps/website)   | The website, [svgreel.roundtrip.dev](https://svgreel.roundtrip.dev/)                                   |
-
-**Want a profile banner?** Start from
-[svgreel-template](https://github.com/SegaraRai/svgreel-template). To use the package directly,
-read [packages/core/README.md](packages/core/README.md).
 
 ## Development
 
