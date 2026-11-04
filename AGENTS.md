@@ -180,6 +180,10 @@ Releases follow the change intents; nobody edits versions by hand.
    verifies and packs that pull request.
 2. Merging it runs the Release workflow on `main`: it stages svgreel on npm (environment
    `npm-release`) and drafts the GitHub Release `v<version>`.
+   The draft's body is a request for a coding agent, with instructions in an HTML comment
+   (`scripts/release-draft.ts`, `scripts/release-notes-prompt.md`): the agent writes the release
+   notes from the changelog sections since the previous release, replaces the body, checks npm
+   and `stable`, and proposes the next step. Keep `--` out of the prompt; it would end the comment.
 3. The maintainer approves the staged version on npm with 2FA, then publishes the draft GitHub
    Release (GitHub creates the tag).
 4. Fast-forward `stable` to the release commit. That deploys the production website and localize
@@ -196,6 +200,10 @@ Releases follow the change intents; nobody edits versions by hand.
 | `website-preview`     | `deploy.yml`        | `main`   | `CLOUDFLARE_API_TOKEN` secret, `CLOUDFLARE_ACCOUNT_ID`   |
 | `website-production`  | `deploy.yml`        | `stable` | `CLOUDFLARE_API_TOKEN` secret, `CLOUDFLARE_ACCOUNT_ID`   |
 | `localize-production` | `deploy.yml`        | `stable` | `CLOUDFLARE_API_TOKEN` secret, `CLOUDFLARE_ACCOUNT_ID`   |
+
+`.github/CODEOWNERS` requests the maintainer's review for paths that privileged workflows run,
+the published package's metadata, and the instructions for coding agents. Add new paths of
+those kinds to it.
 
 Restrict each environment to its branch in the repository settings. The template sync also
 runs for release tags, so allow `v*` tags on `template-sync`.

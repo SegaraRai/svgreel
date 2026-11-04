@@ -146,16 +146,23 @@ jobs:
           node-version: "26.13.0"
           cache: false
           run-install: false
-      # A rerun after a partial failure keeps an existing draft.
+      # The body asks a coding agent to write the notes from the changelog and to check the
+      # release (scripts/release-draft.ts). A rerun after a partial failure keeps an existing draft.
       - name: Create the draft
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag=$(node scripts/release-notes.ts "$RUNNER_TEMP/release-body.md")
+          version=$(node --print "require('./packages/core/package.json').version")
           flags=()
-          case "$tag" in
+          list=(--exclude-drafts --limit 1000 --json tagName --jq '.[].tagName')
+          case "$version" in
             *-*) flags+=(--prerelease --latest=false) ;;
+            # The notes of a stable release cover every change since the previous stable release.
+            *) list+=(--exclude-pre-releases) ;;
           esac
+          export RELEASE_TAGS
+          RELEASE_TAGS=$(gh release list "${list[@]}")
+          tag=$(node scripts/release-draft.ts --repository "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --body-file "$RUNNER_TEMP/release-body.md")
           draft=$(gh release view "$tag" --json isDraft --jq '.isDraft' 2> /dev/null || true)
           case "$draft" in
             false) echo "The GitHub Release $tag is already published." ;;

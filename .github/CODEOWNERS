@@ -1,0 +1,36 @@
+# Changes to these paths run with repository secrets or write permissions after the merge,
+# change the published package, or change the instructions that coding agents follow.
+
+# Workflows and this file.
+/.github/ @SegaraRai
+
+# The Version PR workflow generates these files.
+/.changeset/ledger.yaml @SegaraRai
+CHANGELOG.md @SegaraRai
+
+# Dependencies and package metadata.
+package.json @SegaraRai
+/pnpm-lock.yaml @SegaraRai
+/pnpm-workspace.yaml @SegaraRai
+/template/template.pnpm-workspace.yaml @SegaraRai
+
+# Scripts and configuration that privileged workflows run: the release draft, the template sync,
+# and the Cloudflare deployments.
+/scripts/ @SegaraRai
+/apps/website/astro.config.ts @SegaraRai
+/apps/website/cloudflare.config.ts @SegaraRai
+/apps/website/integrations/ @SegaraRai
+/apps/localize/cloudflare.config.ts @SegaraRai
+/apps/localize/vite.config.ts @SegaraRai
+
+# License files that the package and the template publish.
+/LICENSE @SegaraRai
+/packages/core/LICENSE @SegaraRai
+/template/LICENSE @SegaraRai
+
+# Instructions for coding agents, in this repository, in the package, and in the template.
+/AGENTS.md @SegaraRai
+/CLAUDE.md @SegaraRai
+/packages/core/docs/ @SegaraRai
+/template/AGENTS.md @SegaraRai
+/template/CLAUDE.md @SegaraRai
