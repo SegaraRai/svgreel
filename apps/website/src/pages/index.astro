@@ -62,7 +62,10 @@ const embed = `<picture>
 const features = [
   ["Self-contained", "One SVG file: CSS keyframes for motion, glyph outlines for text. No JavaScript, no web fonts."],
   ["Works in a README", "GitHub shows it through a plain <img>. A still copy is built for reduced motion."],
-  ["React, frame by frame", "A component gets the frame number and returns SVG. Sequences, springs and easing included."],
+  [
+    "React, frame by frame",
+    "A component gets the frame number and returns SVG. Sequences, springs and easing included.",
+  ],
   ["Variants", "Dark and light themes, languages and your own axes, each built into its own file."],
 ] as const;
 
@@ -100,10 +103,16 @@ const secondaryButton = style("px-4 py-2 text-foreground font-medium no-underlin
           href="#agents"
           {...style("px-4 py-2 text-accent-foreground font-medium no-underline bg-accent rounded-md", {
             "hover:": "opacity-90",
-          })}>Get started</a
+          })}
         >
-        <a href={REPO} {...style(secondaryButton)}>GitHub</a>
-        <a href={NPM} {...style(secondaryButton)}>npm</a>
+          Get started
+        </a>
+        <a href={REPO} {...style(secondaryButton)}>
+          GitHub
+        </a>
+        <a href={NPM} {...style(secondaryButton)}>
+          npm
+        </a>
       </nav>
     </header>
 
@@ -116,14 +125,12 @@ const secondaryButton = style("px-4 py-2 text-foreground font-medium no-underlin
     />
 
     <ul {...style("grid m-0 p-0 gap-6 list-none sm:grid-cols-2")}>
-      {
-        features.map(([title, text]) => (
-          <li {...style("flex flex-col gap-1")}>
-            <h2 {...style("m-0 text-base font-semibold")}>{title}</h2>
-            <p {...style(lead)}>{text}</p>
-          </li>
-        ))
-      }
+      {features.map(([title, text]) => (
+        <li {...style("flex flex-col gap-1")}>
+          <h2 {...style("m-0 text-base font-semibold")}>{title}</h2>
+          <p {...style(lead)}>{text}</p>
+        </li>
+      ))}
     </ul>
 
     <section id="agents" {...style("flex flex-col gap-6 scroll-mt-8")}>
@@ -134,14 +141,21 @@ const secondaryButton = style("px-4 py-2 text-foreground font-medium no-underlin
           it, shows you a preview page, and changes it until you're happy.
         </p>
       </div>
-      <Snippet title="Starting from nothing: the agent sets up your copy of the template" lang="text" code={promptNew} />
+      <Snippet
+        title="Starting from nothing: the agent sets up your copy of the template"
+        lang="text"
+        code={promptNew}
+      />
       <Snippet title="Inside your copy of the template" lang="text" code={promptExisting} />
       <Snippet title="Inside an existing project" lang="text" code={promptPackage} />
       <p {...style(note)}>
-        The <a href={TEMPLATE_REPO} {...style(link)}>template</a>'s AGENTS.md takes the agent through the questions,
-        the build, the preview and publishing, and keeps notes in PROJECT.md for the next session. The package ships its
-        docs and examples in <code {...style(inlineCode)}>node_modules/svgreel</code>, so agents read the version you
-        installed.
+        The{" "}
+        <a href={TEMPLATE_REPO} {...style(link)}>
+          template
+        </a>
+        's AGENTS.md takes the agent through the questions, the build, the preview and publishing, and keeps notes in
+        PROJECT.md for the next session. The package ships its docs and examples in{" "}
+        <code {...style(inlineCode)}>node_modules/svgreel</code>, so agents read the version you installed.
       </p>
     </section>
 
@@ -157,11 +171,14 @@ const secondaryButton = style("px-4 py-2 text-foreground font-medium no-underlin
         src="/examples/"
         title="svgreel preview with the package's examples"
         loading="lazy"
-        {...style("h-200 w-full bg-panel rounded-xl border border-line")}></iframe>
+        {...style("h-200 w-full bg-panel rounded-xl border border-line")}
+      ></iframe>
       <p {...style(note)}>
-        <a href="/examples/" {...style(link)}>Open it in a full page</a>. Under{" "}
-        <code {...style(inlineCode)}>svgreel build --watch</code>, it also has live controls for each composition's
-        params.
+        <a href="/examples/" {...style(link)}>
+          Open it in a full page
+        </a>
+        . Under <code {...style(inlineCode)}>svgreel build --watch</code>, it also has live controls for each
+        composition's params.
       </p>
     </section>
 
@@ -195,30 +212,34 @@ const secondaryButton = style("px-4 py-2 text-foreground font-medium no-underlin
     <section {...style("flex flex-col gap-6")}>
       <h2 {...style(heading)}>Docs</h2>
       <ul {...style("grid m-0 p-0 gap-3 list-none sm:grid-cols-2")}>
-        {
-          docs.map(([file, text]) => (
-            <li>
-              <a
-                href={`${DOCS}/${file}`}
-                {...style("flex h-full p-4 flex-col gap-1 text-foreground no-underline rounded-lg border border-line", {
-                  "hover:": "border-accent",
-                })}
-              >
-                <span {...style("font-mono text-accent font-medium")}>{file}</span>
-                <span {...style("text-muted text-sm")}>{text}</span>
-              </a>
-            </li>
-          ))
-        }
+        {docs.map(([file, text]) => (
+          <li>
+            <a
+              href={`${DOCS}/${file}`}
+              {...style("flex h-full p-4 flex-col gap-1 text-foreground no-underline rounded-lg border border-line", {
+                "hover:": "border-accent",
+              })}
+            >
+              <span {...style("font-mono text-accent font-medium")}>{file}</span>
+              <span {...style("text-muted text-sm")}>{text}</span>
+            </a>
+          </li>
+        ))}
       </ul>
     </section>
 
     <footer {...style("flex pt-8 flex-wrap justify-between gap-4 text-muted text-sm border-line border-t")}>
       <span>MIT licensed. The SVGs you make are yours.</span>
       <span {...style("flex gap-4")}>
-        <a href={REPO} {...style("text-muted")}>GitHub</a>
-        <a href={TEMPLATE_REPO} {...style("text-muted")}>Template</a>
-        <a href={NPM} {...style("text-muted")}>npm</a>
+        <a href={REPO} {...style("text-muted")}>
+          GitHub
+        </a>
+        <a href={TEMPLATE_REPO} {...style("text-muted")}>
+          Template
+        </a>
+        <a href={NPM} {...style("text-muted")}>
+          npm
+        </a>
       </span>
     </footer>
   </div>

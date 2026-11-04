@@ -13,11 +13,7 @@ const { code, lang, title } = Astro.props;
 ---
 
 <figure data-snippet {...style("relative overflow-hidden m-0 bg-panel rounded-lg border border-line")}>
-  {
-    title && (
-      <figcaption {...style("px-4 py-2 font-mono text-muted text-xs border-line border-b")}>{title}</figcaption>
-    )
-  }
+  {title && <figcaption {...style("px-4 py-2 font-mono text-muted text-xs border-line border-b")}>{title}</figcaption>}
   <Code
     code={code.trim()}
     lang={lang}
@@ -30,7 +26,10 @@ const { code, lang, title } = Astro.props;
     data-copy
     {...style(
       "absolute right-2 bottom-2 px-2.5 py-1 text-muted text-xs bg-background rounded-md border border-line cursor-pointer",
-      { "hover:": "text-foreground", "data-[copied]:": "text-accent" },
+      {
+        "hover:": "text-foreground",
+        "data-[copied]:": "text-accent",
+      },
     )}
   >
     Copy

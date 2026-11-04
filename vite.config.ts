@@ -13,6 +13,7 @@ export default defineConfig({
     ],
     printWidth: 120,
     sortPackageJson: true,
+    astro: true,
   },
   lint: {
     ignorePatterns: [
