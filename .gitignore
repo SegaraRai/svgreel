@@ -4,3 +4,4 @@ examples-dist/
 *.log
 .cloudflare/
 .wrangler/
+.vitest/

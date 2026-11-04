@@ -34,24 +34,35 @@ catalogs:
     react: ^19.3.1
     react-dom: ^19.3.1
     typescript: ^7.0.2
-    vite: npm:@voidzero-dev/vite-plus-core@1.4.0
-    vite-plus: 1.4.0
-    vitest: 5.0.5
+    vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+    vite-plus: 1.5.0
 
 # Vite+: make plugins (e.g. @vitejs/plugin-react) resolve the Vite and Vitest bundled with vite-plus.
 # Keep these versions in step with vite-plus (`vp toolchain`).
 overrides:
   vite@*: "catalog:"
-  vitest@*: "catalog:"
 
 # The alias reports vite-plus's own version number, which peer ranges like "^8" don't match.
 peerDependencyRules:
   allowAny:
     - vite
+  allowedVersions:
+    vite: "*"
 
 minimumReleaseAgeExclude:
   - "@stillwind/*"
   - stillwind
+  - vite-plus
+  - "@voidzero-dev/*"
+  - oxlint
+  - "@oxlint/*"
+  - oxlint-tsgolint
+  - "@oxlint-tsgolint/*"
+  - oxfmt
+  - "@oxfmt/*"
+  - vitest
+  - "@vitest/*"
+  - "@oxc-project/*"
 
 # Change intents (`pnpm change`) → `pnpm version -r` in the Version PR workflow. Only svgreel is
 # released; the private workspace packages are ignored.
