@@ -8,7 +8,9 @@
 #   "soundfile>=0.12",
 # ]
 # ///
-"""Beat analysis for svgreel compositions. Copy this file into your project (tools/beatmap.py)
+
+"""
+Beat analysis for svgreel compositions. Copy this file into your project (tools/beatmap.py)
 and run it with uv, which installs the dependencies:
 
   uv run tools/beatmap.py analyze song.mp3 -o song.analysis.json --png song.png

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // Renders a built composition to a video, frame by frame, with its audio.
 //
 // Copy this file into your project (`tools/render-video.mjs`) and run it from the project root
