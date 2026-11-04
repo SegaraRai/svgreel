@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vite-plus/test";
 import { registerFonts } from "../fonts.js";
 import { fontsource } from "../fontsource.js";
 import { all, render, styleOf } from "../testing.js";
-import { codeBlockHeight, highlight, type CodeTheme } from "./CodeBlock.js";
+import { CodeBlock, codeBlockHeight, highlight, type CodeTheme } from "./CodeBlock.js";
 import { fitFontSize, measureText, measureTextBlock, Text } from "./Text.js";
 import { Typewriter } from "./Typewriter.js";
 
@@ -141,9 +141,21 @@ describe("CodeBlock helpers", () => {
     ).toBe(line);
   });
 
+  it("draws given tokens in their colors, with the theme's text color as the default", () => {
+    const fills = (el: ReturnType<typeof render>) =>
+      new Set([...all(el, "g"), ...all(el, "path")].flatMap((e) => (e.attribs.fill ? [e.attribs.fill] : [])));
+    const tokens = [[{ text: "let", color: "#f00" }, { text: " x" }], [{ text: "1", color: "#0f0" }]];
+    const drawn = fills(render(<CodeBlock tokens={tokens} width={200} font={ts} theme={theme} />, { frame: 100 }));
+    expect(drawn).toContain("#f00");
+    expect(drawn).toContain("#0f0");
+    expect(drawn).toContain("text");
+    expect(drawn).not.toContain("keyword");
+  });
+
   it("adds the header bar only with a file or language", () => {
     const lines = ["a", "b"];
     expect(codeBlockHeight({ lines })).toBeCloseTo(22 + 56 + 22 - 8.4);
     expect(codeBlockHeight({ lines, file: "a.ts" }) - codeBlockHeight({ lines })).toBe(40);
+    expect(codeBlockHeight({ tokens: [[{ text: "a" }], []] })).toBe(codeBlockHeight({ lines }));
   });
 });

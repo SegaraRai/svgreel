@@ -225,7 +225,7 @@ Beats and bars past either end are extrapolated at `bpm` and `meter`, so
 | `<Pill text height padding fill stroke color>`                                                   | Rounded label sized to its text. `pillWidth()` measures it                                                                                                                                                                                                                    |
 | `<PillRow items at stagger gap …pill>`                                                           | Row of pills popping in                                                                                                                                                                                                                                                       |
 | `<DrawPath d progress>`                                                                          | Stroke that draws itself, 0 → 1                                                                                                                                                                                                                                               |
-| `<CodeBlock lines file lang theme font start speed>`                                             | Editor card with highlighting and typing. `codeBlockHeight()` measures it                                                                                                                                                                                                     |
+| `<CodeBlock lines file lang theme font start speed>`                                             | Editor card with highlighting and typing. Pass `tokens` (from `highlightCode()`) instead of `lines` for language-aware highlighting. See "Code highlighting" below. `codeBlockHeight()` measures it                                                                           |
 | `<WindowFrame width height title font preset controls controlsSide titleAlign>`                  | Window chrome; children are clipped to the content area. See "Window frames" below                                                                                                                                                                                            |
 | `<ProgressBar width value start marks>`                                                          | Track, fill and milestone dots                                                                                                                                                                                                                                                |
 | `<Wipe colors duration direction>`                                                               | Slanted bands sweeping the frame. Put it in a `<Sequence>` at the cut                                                                                                                                                                                                         |
@@ -242,6 +242,35 @@ Beats and bars past either end are extrapolated at `bpm` and `meter`, so
 | `<Terminal lines width height font theme prompt speed>`                                          | Terminal window replaying typed commands and output, scrolling when full. `terminalTimeline()` gives when each line starts                                                                                                                                                    |
 | `<Image src x y width height fit radius style>`                                                  | Embedded raster (or SVG) image, cropped to `fit` (`cover contain fill`) and rounded by `radius` (half the size for a circle). See "Images" below                                                                                                                              |
 | `useSvgId(prefix)`                                                                               | Unique id for gradients, masks, clip paths                                                                                                                                                                                                                                    |
+
+## Code highlighting
+
+`<CodeBlock lines>` colors each line with `highlight()`, a small regex highlighter that knows no
+language: it colors comments, strings, keywords, numbers and tags with the `CodeTheme`'s colors,
+and constructs spanning lines (block comments, template literals) aren't recognized.
+
+For accurate highlighting, `highlightCode(code, { lang, theme })` runs
+[shiki](https://shiki.style/) (VS Code's TextMate grammars) and returns
+`{ tokens, background, foreground }`. Pass `tokens` to `<CodeBlock>` instead of `lines`. It is
+async: `await` it at the top of the composition. `lang` is any language shiki bundles (`"tsx"`,
+`"rust"`, `"css"`, …). `theme` is one of shiki's themes (`"github-dark"`, …), a VS Code theme
+object, or a `CodeTheme`: its colors are mapped onto the grammar's scopes, and its optional
+`function` and `type` colors (default `text`) apply only here. `codeThemeToShiki()` gives that
+mapping as a shiki theme.
+
+```tsx
+const { tokens } = await highlightCode(source, { lang: "tsx", theme: codeTheme });
+// or, with a shiki theme, take its background for the card:
+const dark = await highlightCode(source, { lang: "tsx", theme: "github-dark" });
+
+<CodeBlock tokens={tokens} theme={codeTheme} width={640} font={font} />;
+<CodeBlock tokens={dark.tokens} theme={{ ...codeTheme, background: dark.background }} width={640} font={font} />;
+```
+
+`tokens` from another highlighter work too: one array of `CodeToken` (`{ text, color?, weight? }`)
+per line. A token without `color` uses `theme.text`. The theme's `background`, `header`,
+`border`, `text` and `accent` still color the card. Bold tokens need a bold face of the code font
+registered; italic and underline aren't drawn.
 
 ## Window frames
 

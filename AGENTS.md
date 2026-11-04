@@ -98,7 +98,7 @@ preview when the change is visible.
 - **No Remotion code or dependency.** The API mirrors Remotion's names, but Remotion's license
   isn't compatible with an MIT template used by companies.
 - Dependencies: keep runtime dependencies minimal (fontkit, htmlparser2, stillwind,
-  @oxc-node/core). The release-age and install-script protections in `pnpm-workspace.yaml` stay on.
+  @oxc-node/core, shiki for `highlightCode()`). The release-age and install-script protections in `pnpm-workspace.yaml` stay on.
 - Paths in the rules above (`src/`, `docs/`, …) are relative to `packages/core/`.
 
 ### template

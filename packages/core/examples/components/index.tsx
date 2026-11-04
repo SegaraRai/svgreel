@@ -10,6 +10,7 @@ import {
   DirectionProvider,
   DrawPath,
   GlowOrb,
+  highlightCode,
   Image,
   param,
   PillRow,
@@ -40,8 +41,20 @@ const CODE: CodeTheme = {
   keyword: C.accent,
   number: C.warm,
   tag: "#7dd3fc",
+  function: "#d2a8ff",
   accent: C.accent,
 };
+
+// <CodeBlock lines> highlights with a small built-in regex highlighter. highlightCode() runs
+// shiki (VS Code's grammars) instead; pass a shiki theme name or, as here, a CodeTheme.
+const { tokens: HELLO } = await highlightCode(
+  `// typed out, then a blinking caret
+import { spring } from "svgreel";
+
+const answer = 42;
+export default answer;`,
+  { lang: "ts", theme: CODE },
+);
 
 const params = defineParams({
   accent: param.color(C.accent, { description: "Glow, rings, progress bar and wipe" }),
@@ -82,13 +95,7 @@ function Components() {
           file="hello.ts"
           lang="TypeScript"
           start={10}
-          lines={[
-            "// typed out, then a blinking caret",
-            'import { spring } from "svgreel";',
-            "",
-            "const answer = 42;",
-            "export default answer;",
-          ]}
+          tokens={HELLO}
         />
       </Card>
 

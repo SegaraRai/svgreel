@@ -290,6 +290,9 @@ importers:
       htmlparser2:
         specifier: ^12.0.0
         version: 12.0.0
+      shiki:
+        specifier: ^4.5.0
+        version: 4.5.0
       stillwind:
         specifier: ^0.6.0
         version: 0.6.0(@astrojs/compiler@4.0.0)(typescript@7.0.2)

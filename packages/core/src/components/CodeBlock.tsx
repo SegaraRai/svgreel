@@ -14,12 +14,36 @@ export interface CodeTheme {
   number: string;
   /** JSX / HTML tags. */
   tag: string;
+  /** Function names. Only `highlightCode()` tells them apart; default: `text`. */
+  function?: string;
+  /** Type and class names. Only `highlightCode()` tells them apart; default: `text`. */
+  type?: string;
   /** Caret, active-tab underline and language label. */
   accent: string;
 }
 
-export interface CodeBlockProps {
-  lines: string[];
+/** One colored run of a line, e.g. from shiki's `codeToTokens()`. */
+export interface CodeToken {
+  text: string;
+  /** Default: the theme's `text` color. */
+  color?: string;
+  /** Font weight for this run. Default: the code font's weight. */
+  weight?: number;
+}
+
+/** The code to show: plain lines (highlighted by `highlight()`), or lines already split into tokens. */
+export type CodeSource =
+  | {
+      lines: string[];
+      tokens?: never;
+    }
+  | {
+      /** One array of tokens per line, from any highlighter. Replaces the built-in highlighting. */
+      tokens: CodeToken[][];
+      lines?: never;
+    };
+
+export type CodeBlockProps = CodeSource & {
   x?: number;
   y?: number;
   width: number;
@@ -40,7 +64,7 @@ export interface CodeBlockProps {
   linePause?: number;
   /** Show a caret. Default true. */
   caret?: boolean;
-}
+};
 
 const KEYWORDS =
   "import|from|export|default|const|let|var|function|return|if|else|for|while|await|async|new|class|extends|type|interface|fn|pub|use|mod|impl|struct|enum|match|def|self|true|false|null|undefined|None|True|False";
@@ -94,17 +118,20 @@ export function highlight(
 /** Total height of a <CodeBlock> with these settings. */
 export function codeBlockHeight({
   lines,
+  tokens,
   file,
   lang,
   lineHeight = 28,
   padding = 22,
-}: Pick<CodeBlockProps, "lines" | "file" | "lang" | "lineHeight" | "padding">) {
-  return (file || lang ? 40 : 0) + padding + lines.length * lineHeight + padding - lineHeight * 0.3;
+}: CodeSource & Pick<CodeBlockProps, "file" | "lang" | "lineHeight" | "padding">) {
+  const count = (tokens ?? lines).length;
+  return (file || lang ? 40 : 0) + padding + count * lineHeight + padding - lineHeight * 0.3;
 }
 
 /** Editor card whose lines are revealed left to right as if typed, with a caret. */
 export function CodeBlock({
-  lines,
+  lines: plain,
+  tokens,
   x = 0,
   y = 0,
   width,
@@ -121,6 +148,8 @@ export function CodeBlock({
   caret = true,
 }: CodeBlockProps) {
   const frame = useCurrentFrame();
+  const runs: CodeToken[][] = tokens ?? plain.map((line) => highlight(line, theme));
+  const lines = tokens ? tokens.map((line) => line.map((tok) => tok.text).join("")) : plain;
   const header = file || lang ? 40 : 0;
   const height = codeBlockHeight({ lines, file, lang, lineHeight, padding });
   const firstBaseline = header + padding + font.size * 0.9;
@@ -184,11 +213,18 @@ export function CodeBlock({
           let prefix = "";
           return (
             <g key={k}>
-              {highlight(line, theme).map((tok, i) => {
+              {runs[k].map((tok, i) => {
                 const tx = padding + measureText(prefix, font);
                 prefix += tok.text;
                 return tok.text.trim() === "" ? null : (
-                  <Text key={i} x={round(tx)} y={ly} {...font} fill={tok.color}>
+                  <Text
+                    key={i}
+                    x={round(tx)}
+                    y={ly}
+                    {...font}
+                    weight={tok.weight ?? font.weight}
+                    fill={tok.color ?? theme.text}
+                  >
                     {tok.text}
                   </Text>
                 );

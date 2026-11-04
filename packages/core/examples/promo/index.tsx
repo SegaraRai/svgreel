@@ -10,6 +10,7 @@ import {
   Appear,
   charAnimations,
   CodeBlock,
+  highlightCode,
   defineComposition,
   defineVariants,
   DotGrid,
@@ -37,6 +38,7 @@ import {
   Wipe,
   type CharInfo,
   type CodeTheme,
+  type CodeToken,
   type TextStyle,
 } from "svgreel";
 
@@ -98,6 +100,7 @@ const THEMES = {
       keyword: ORANGE,
       number: "#7dd3fc",
       tag: "#7dd3fc",
+      function: "#d2a8ff",
       accent: ORANGE,
     },
   },
@@ -122,10 +125,25 @@ const THEMES = {
       keyword: "#b85c00",
       number: "#0550ae",
       tag: "#0550ae",
+      function: "#8250df",
       accent: "#b85c00",
     },
   },
 } satisfies Record<string, Theme>;
+
+/** The scenes' code, highlighted with shiki in each theme's colors. */
+const HIGHLIGHTED = Object.fromEntries(
+  await Promise.all(
+    Object.entries(THEMES).map(async ([name, { code: theme }]) => [
+      name,
+      {
+        code: (await highlightCode(code.join("\n"), { lang: "tsx", theme })).tokens,
+        css: (await highlightCode(css.join("\n"), { lang: "css", theme })).tokens,
+      },
+    ]),
+  ),
+) as Record<keyof typeof THEMES, { code: CodeToken[][]; css: CodeToken[][] }>;
+const useHighlighted = () => HIGHLIGHTED[useTheme().dark ? "dark" : "light"];
 
 const variants = defineVariants({ theme: ["dark", "light"], lang: LANGS });
 
@@ -520,7 +538,7 @@ function Write() {
           theme={C.code}
           file="hello.tsx"
           lang="TSX"
-          lines={code}
+          tokens={useHighlighted().code}
           start={CODE_START}
           speed={CODE_SPEED}
         />
@@ -634,7 +652,7 @@ function Compile() {
           theme={C.code}
           file="hello.svg"
           lang="CSS"
-          lines={css}
+          tokens={useHighlighted().css}
           start={56}
           speed={0.2}
         />

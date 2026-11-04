@@ -60,7 +60,21 @@ export { Appear } from "./components/Appear.js";
 export { ArcProgress, arcPath } from "./components/ArcProgress.js";
 export { DotGrid, GlowOrb } from "./components/Backgrounds.js";
 export { Camera, cameraRect, cameraTransform, type Rect, type Shot } from "./components/Camera.js";
-export { CodeBlock, codeBlockHeight, highlight, type CodeTheme } from "./components/CodeBlock.js";
+export {
+  CodeBlock,
+  codeBlockHeight,
+  highlight,
+  type CodeBlockProps,
+  type CodeSource,
+  type CodeTheme,
+  type CodeToken,
+} from "./components/CodeBlock.js";
+export {
+  codeThemeToShiki,
+  highlightCode,
+  type HighlightCodeOptions,
+  type HighlightedCode,
+} from "./components/highlightCode.js";
 export { DrawPath } from "./components/DrawPath.js";
 export { FollowPath } from "./components/FollowPath.js";
 export { Image, type ImageProps } from "./components/Image.js";
