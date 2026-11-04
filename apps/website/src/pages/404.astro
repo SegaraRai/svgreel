@@ -1,0 +1,14 @@
+---
+import { style } from "stillwind/astro";
+
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Not found · svgreel">
+  <main {...style("grid mx-auto min-h-screen max-w-page px-6 place-content-center gap-4 text-center")}>
+    <h1 {...style("m-0 text-3xl font-bold")}>Page not found</h1>
+    <p {...style("m-0 text-muted")}>
+      <a href="/" {...style("text-accent")}>Back to svgreel</a>
+    </p>
+  </main>
+</Layout>

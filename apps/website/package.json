@@ -6,16 +6,25 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
-    "build": "vp build",
-    "preview": "vp preview",
-    "deploy": "cf deploy"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "cf deploy",
+    "fmt:stillwind": "stillwind fmt",
+    "fmt:stillwind:check": "stillwind fmt --check",
+    "lint:stillwind": "stillwind lint --max-warnings=0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "catalog:",
+    "@astrojs/compiler": "^4.0.0",
+    "@cloudflare/build-output-utils": "catalog:",
+    "@cloudflare/config": "catalog:",
+    "@stillwind/cli": "^0.6.0",
+    "@stillwind/integration": "^0.6.0",
     "@types/node": "catalog:",
+    "astro": "^7.4.4",
     "cf": "catalog:",
-    "typescript": "catalog:",
-    "vite-plus": "catalog:"
+    "stillwind": "^0.6.0",
+    "svgreel": "workspace:*",
+    "typescript": "catalog:"
   }
 }

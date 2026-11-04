@@ -4,12 +4,24 @@ import { defineConfig } from "vite-plus";
 // build and test config; `vp test` runs them all as projects.
 export default defineConfig({
   fmt: {
-    ignorePatterns: ["**/dist/**", "**/examples-dist/**", "**/.cloudflare/**"],
+    ignorePatterns: [
+      "**/dist/**",
+      "**/examples-dist/**",
+      "**/.cloudflare/**",
+      "**/.astro/**",
+      "apps/website/public/**",
+    ],
     printWidth: 120,
     sortPackageJson: true,
   },
   lint: {
-    ignorePatterns: ["**/dist/**", "**/examples-dist/**", "**/.cloudflare/**"],
+    ignorePatterns: [
+      "**/dist/**",
+      "**/examples-dist/**",
+      "**/.cloudflare/**",
+      "**/.astro/**",
+      "apps/website/public/**",
+    ],
     options: {
       typeAware: true,
       typeCheck: true,
@@ -29,12 +41,18 @@ export default defineConfig({
     tasks: {
       check: {
         command: "vp check",
-        dependsOn: ["svgreel#build", "svgreel#lint:stillwind", "svgreel#fmt:stillwind:check"],
+        dependsOn: [
+          "svgreel#build",
+          "svgreel#lint:stillwind",
+          "svgreel#fmt:stillwind:check",
+          "@svgreel-internal/apps-website#lint:stillwind",
+          "@svgreel-internal/apps-website#fmt:stillwind:check",
+        ],
       },
       fix: {
         command: "vp check --fix",
         cache: false,
-        dependsOn: ["svgreel#fmt:stillwind"],
+        dependsOn: ["svgreel#fmt:stillwind", "@svgreel-internal/apps-website#fmt:stillwind"],
       },
       test: {
         command: "vp test --run",
@@ -44,7 +62,12 @@ export default defineConfig({
       // starts only after svgreel's build.
       build: {
         command: "vp run my-svgreel#build",
-        dependsOn: ["svgreel#build", "@svgreel-internal/apps-website#build"],
+        dependsOn: ["svgreel#build", "website:build"],
+      },
+      // The website embeds svgreel's preview page (dist/preview) with the examples built into it.
+      "website:build": {
+        command: "vp run @svgreel-internal/apps-website#build",
+        dependsOn: ["svgreel#build"],
       },
       examples: {
         command: "vp run svgreel#examples",

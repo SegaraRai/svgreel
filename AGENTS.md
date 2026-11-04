@@ -22,12 +22,12 @@ packages/core/    the svgreel package (name "svgreel")
   docs/             user docs, shipped in the package
   examples/         demo compositions, shipped in the package; also the visual test bed
   assets/           README logo: copies of examples-dist/logo/logo-{light,dark}{,.still}.svg (refresh
-                    after changing examples/logo)
+                    after changing examples/logo); the website serves them at /brand/
 assets/           the root README's promo: copies of packages/core/examples-dist/promo/*.svg
                   (refresh after changing examples/promo), served through apps/localize
 template/         the template repository's contents (package "my-svgreel")
 apps/localize/    Cloudflare Worker (Hono): picks the SVG for the viewer's Accept-Language
-apps/website/     the website (placeholder on Cloudflare Workers static assets)
+apps/website/     the website (Astro + Stillwind, on Cloudflare Workers static assets)
 .changeset/       pending change intents and the release ledger
 scripts/          repository scripts, run with plain `node`
 ```
@@ -45,7 +45,7 @@ pnpm install
 pnpm exec vp run check     # build svgreel, Stillwind lint/fmt check, then vp check (format, lint, types)
 pnpm exec vp run fix       # auto-fix formatting (vp check --fix, stillwind fmt)
 pnpm exec vp run test      # every workspace's unit tests (imports from "vite-plus/test")
-pnpm exec vp run build     # svgreel (dist/), the template's compositions, the website
+pnpm exec vp run build     # svgreel (dist/), the template's compositions, the website (apps/website/dist)
 pnpm exec vp run examples  # packages/core/examples → packages/core/examples-dist/index.html
 pnpm exec vp run examples:watch   # same, rebuilt on save; preview with live param controls on localhost
 pnpm exec vp run template:build   # svgreel, then template/compositions → template/dist (args pass through)
@@ -106,6 +106,8 @@ preview when the change is visible.
   catalog. Its pnpm-workspace.yaml repeats the supply-chain settings for users.
 - It's a user-facing starter: its README and AGENTS.md are written for template users and their
   agents, not for svgreel development.
+- Its README shows the svgreel logo from `https://svgreel.roundtrip.dev/brand/` (apps/website), so
+  copies of the template don't carry logo files.
 
 ### apps/localize
 
@@ -122,21 +124,38 @@ preview when the change is visible.
 
 ### apps/website
 
-- A placeholder page built by Vite and served as Cloudflare Workers static assets
-  (`cloudflare.config.ts`). Production: `https://svgreel.roundtrip.dev/`; Previews:
-  `https://<branch>.svgreel-preview.roundtrip.dev/`. A Preview uses the domains of the last
-  production deployment, so `stable` must deploy once before the first Preview.
+- One landing page in [Astro](https://astro.build/), styled with Stillwind (`src/styles/stillwind.css`,
+  `stillwind.config.ts`), built as static files. Production: `https://svgreel.roundtrip.dev/`;
+  Previews: `https://<branch>.svgreel-preview.roundtrip.dev/`. A Preview uses the domains of the
+  last production deployment, so `stable` must deploy once before the first Preview.
+- `integrations/examples.ts` runs before every build and when `astro dev` starts. It writes two
+  gitignored folders into `public/`:
+  - `examples/`: `svgreel build` of the examples listed in `EXAMPLES` (all but `promo`, which is
+    about 8 MB), with the preview page, embedded in the page through an `<iframe>`. Like
+    `vp run examples`, it runs the CLI and the examples from source, but it needs svgreel's
+    `dist/preview`: build svgreel first.
+  - `brand/`: `logo-{light,dark}{,.still}.svg` from `packages/core/assets`. These URLs are fixed:
+    svgreel-template's README (and other people's READMEs) link to them instead of carrying copies.
+    Don't rename or remove them.
+- `cf deploy` detects Astro and runs `astro build`, then deploys `.cloudflare/output`.
+  `@astrojs/cloudflare` doesn't support `cf` yet, so `integrations/cloudflare-output.ts` writes that
+  Build Output from `dist/` and `cloudflare.config.ts` with `@cloudflare/config` and
+  `@cloudflare/build-output-utils`. Keep those two (catalog) at the versions `cf` depends on.
+- `htmlHandling` is `auto-trailing-slash`, so `/examples/` keeps its slash and the preview page's
+  relative URLs resolve.
+- The page's promo is the root README's, served through apps/localize in the viewer's language.
 
 ## Stillwind
 
-- The preview UI (`packages/core/preview/`) styles elements with [Stillwind](https://stillwind.dev/). Stillwind
-  compiles Tailwind CSS v4 utilities in `style()` calls into element props and static CSS.
-  Compositions and the compiler don't use it.
+- The preview UI (`packages/core/preview/`) and the website (`apps/website/`) style elements with
+  [Stillwind](https://stillwind.dev/). Stillwind compiles Tailwind CSS v4 utilities in `style()`
+  calls into element props and static CSS. Compositions and the compiler don't use it.
 - Before you change styles, read the relevant Markdown docs in `node_modules/stillwind/docs/`.
   Start with `guides/recommended-practices.md`. `node_modules/stillwind/skills/stillwind/SKILL.md`
   lists the page for each task.
 - After you change styles, run `pnpm exec stillwind lint --fix` and `pnpm exec stillwind fmt` in
-  `packages/core`, and fix the remaining findings. `vp run check` fails on any finding.
+  `packages/core` or `apps/website`, and fix the remaining findings. `vp run check` fails on any
+  finding.
 
 ## Releasing
 

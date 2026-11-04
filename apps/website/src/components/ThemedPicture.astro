@@ -1,0 +1,24 @@
+---
+/**
+ * The README `<picture>`: animated dark/light files when motion is allowed, stills otherwise.
+ */
+interface Props {
+  src: (theme: "light" | "dark", still: boolean) => string;
+  alt: string;
+  width: number;
+  height: number;
+  loading?: "eager" | "lazy";
+  /** Props from style(), for the <img>. */
+  class?: string;
+  style?: string | Record<string, string>;
+}
+
+const { src, alt, width, height, loading = "eager", ...rest } = Astro.props;
+---
+
+<picture>
+  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset={src("dark", false)} />
+  <source media="(not (prefers-reduced-motion: reduce))" srcset={src("light", false)} />
+  <source media="(prefers-color-scheme: dark)" srcset={src("dark", true)} />
+  <img src={src("light", true)} alt={alt} width={width} height={height} loading={loading} {...rest} />
+</picture>

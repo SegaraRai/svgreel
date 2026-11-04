@@ -1,0 +1,53 @@
+---
+import { Code } from "astro:components";
+import { style } from "stillwind/astro";
+
+/** A highlighted code block with a copy button. */
+interface Props {
+  code: string;
+  lang: "text" | "sh" | "tsx" | "html" | "md";
+  title?: string;
+}
+
+const { code, lang, title } = Astro.props;
+---
+
+<figure data-snippet {...style("relative overflow-hidden m-0 bg-panel rounded-lg border border-line")}>
+  {
+    title && (
+      <figcaption {...style("px-4 py-2 font-mono text-muted text-xs border-line border-b")}>{title}</figcaption>
+    )
+  }
+  <Code
+    code={code.trim()}
+    lang={lang}
+    themes={{ light: "github-light", dark: "github-dark" }}
+    defaultColor="light-dark()"
+    {...style("overflow-x-auto m-0 py-4 ps-4 pe-20 font-mono text-sm/relaxed bg-transparent!")}
+  />
+  <button
+    type="button"
+    data-copy
+    {...style(
+      "absolute right-2 bottom-2 px-2.5 py-1 text-muted text-xs bg-background rounded-md border border-line cursor-pointer",
+      { "hover:": "text-foreground", "data-[copied]:": "text-accent" },
+    )}
+  >
+    Copy
+  </button>
+</figure>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-copy]")) {
+    button.addEventListener("click", async () => {
+      const code = button.closest("[data-snippet]")?.querySelector("code")?.textContent ?? "";
+      await navigator.clipboard.writeText(code);
+      button.dataset.copied = "";
+      button.textContent = "Copied";
+      setTimeout(() => {
+        delete button.dataset.copied;
+        button.textContent = "Copy";
+      }, 1500);
+    });
+  }
+</script>

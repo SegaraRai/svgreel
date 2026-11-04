@@ -22,6 +22,9 @@ allowBuilds:
 # own repository, so its package.json keeps plain ranges.
 catalogs:
   default:
+    # apps/website writes cf's Build Output itself: keep these at the versions cf depends on.
+    "@cloudflare/build-output-utils": 0.9.6
+    "@cloudflare/config": 0.29.0
     "@cloudflare/vite-plugin": 2.0.0-beta.v.6
     "@types/node": ^26.6.6
     "@types/react": ^19.3.0

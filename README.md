@@ -27,7 +27,7 @@
 | [packages/core](packages/core) | The [`svgreel`](https://www.npmjs.com/package/svgreel) npm package: compiler, components, CLI, preview |
 | [template](template)           | The contents of [svgreel-template](https://github.com/SegaraRai/svgreel-template), synced by CI        |
 | [apps/localize](apps/localize) | A Cloudflare Worker that serves the SVG matching the viewer's language                                 |
-| [apps/website](apps/website)   | The website (placeholder)                                                                              |
+| [apps/website](apps/website)   | The website, [svgreel.roundtrip.dev](https://svgreel.roundtrip.dev/)                                   |
 
 **Want a profile banner?** Start from
 [svgreel-template](https://github.com/SegaraRai/svgreel-template). To use the package directly,

@@ -3,5 +3,6 @@
   "compilerOptions": {
     "lib": ["ES2024", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "vite.config.ts"]
+  // .astro files are checked by Stillwind's lint and the Astro build, not by tsc.
+  "include": ["src", "integrations", "astro.config.ts", "cloudflare.config.ts", "stillwind.config.ts"]
 }

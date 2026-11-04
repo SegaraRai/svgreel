@@ -42,12 +42,16 @@ jobs:
         with:
           node-version: "26.13.0"
           cache: false
+      # The website embeds the examples' preview page, built from svgreel's dist/preview.
+      - name: Build svgreel
+        run: vp run svgreel#build
       - name: Build and deploy
         working-directory: apps/website
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        # Each command builds first, evaluating cloudflare.config.ts for production or a Preview.
+        # Each command runs `astro build` first, which writes the Build Output from
+        # cloudflare.config.ts for production or a Preview (integrations/cloudflare-output.ts).
         run: |
           if [ "$GITHUB_REF_NAME" = stable ]; then
             vp exec cf deploy

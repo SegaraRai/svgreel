@@ -1,0 +1,27 @@
+@import "stillwind";
+
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "Cascadia Code", monospace;
+
+  /* GitHub's README colors, so the README logo and promo sit on the background they were made for. */
+  --color-background: light-dark(#ffffff, #0d1117);
+  --color-panel: light-dark(#f6f8fa, #151b23);
+  --color-line: light-dark(#d1d9e0, #3d444d);
+  --color-foreground: light-dark(#1f2328, #f0f6fc);
+  --color-muted: light-dark(#59636e, #9198a1);
+  --color-accent: light-dark(#0969da, #4493f8);
+  --color-accent-foreground: light-dark(#ffffff, #0d1117);
+
+  --container-page: 64rem;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-foreground antialiased bg-background;
+  }
+}
