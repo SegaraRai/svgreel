@@ -40,9 +40,11 @@ export default defineConfig({
         command: "vp test --run",
         dependsOn: ["svgreel#build"],
       },
+      // dependsOn entries run in parallel, so the template's build (which runs svgreel's CLI)
+      // starts only after svgreel's build.
       build: {
-        command: "",
-        dependsOn: ["svgreel#build", "my-svgreel#build", "@svgreel-internal/apps-website#build"],
+        command: "vp run my-svgreel#build",
+        dependsOn: ["svgreel#build", "@svgreel-internal/apps-website#build"],
       },
       examples: {
         command: "vp run svgreel#examples",

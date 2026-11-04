@@ -50,7 +50,7 @@ jobs:
           node-version: "26.13.0"
           cache: false
       - run: vp run examples
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: examples-preview
           path: packages/core/examples-dist/
