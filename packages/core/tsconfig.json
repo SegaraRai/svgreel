@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    // Examples import "svgreel" like users do; here it resolves to the source.
+    "paths": {
+      "svgreel": ["./src/index.ts"]
+    }
+  },
+  "include": ["src", "examples", "preview", "vite.config.ts", "stillwind.config.ts", "test-setup.ts"]
+}

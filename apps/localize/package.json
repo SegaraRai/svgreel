@@ -1,0 +1,23 @@
+{
+  "name": "@svgreel-internal/apps-localize",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Serves the language variant of an SVG in a GitHub repository that matches the viewer's Accept-Language",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "cf dev",
+    "deploy": "cf deploy",
+    "test": "vp test --run"
+  },
+  "dependencies": {
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "catalog:",
+    "@types/node": "catalog:",
+    "cf": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

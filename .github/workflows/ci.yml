@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify ${{ matrix.task }}
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [check, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "26.13.0"
+          cache: false
+      - name: Check change intents and package versions
+        if: matrix.task == 'check'
+        run: vp exec pnpm change check
+      - env:
+          TASK: ${{ matrix.task }}
+        run: vp run "$TASK"
+
+  examples:
+    name: Build examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "26.13.0"
+          cache: false
+      - run: vp run examples
+      - uses: actions/upload-artifact@v4
+        with:
+          name: examples-preview
+          path: packages/core/examples-dist/

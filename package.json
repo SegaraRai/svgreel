@@ -1,0 +1,21 @@
+{
+  "name": "@svgreel-internal/root",
+  "version": "0.0.0",
+  "private": true,
+  "description": "svgreel monorepo: the svgreel package, its template, and the services around it",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.16.1"
+}

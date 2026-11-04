@@ -1,0 +1,75 @@
+{
+  "name": "svgreel",
+  "version": "0.1.0",
+  "description": "Write motion graphics as React components; compile them to self-contained animated SVGs (CSS keyframes, outlined text).",
+  "keywords": [
+    "animation",
+    "github-profile",
+    "motion-graphics",
+    "react",
+    "readme",
+    "svg"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SegaraRai/svgreel.git",
+    "directory": "packages/core"
+  },
+  "bin": {
+    "svgreel": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "examples"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vp pack && vp build",
+    "examples": "vp build && tsx src/cli/main.ts build --dir examples --out examples-dist",
+    "fmt:stillwind": "stillwind fmt",
+    "fmt:stillwind:check": "stillwind fmt --check",
+    "lint:stillwind": "stillwind lint --max-warnings=0",
+    "test": "vp test --run",
+    "prepublishOnly": "vp test --run && vp run build"
+  },
+  "dependencies": {
+    "domhandler": "^6.0.1",
+    "fontkit": "^2.0.4",
+    "htmlparser2": "^12.0.0",
+    "stillwind": "^0.6.0",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@fontsource/figtree": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/noto-sans-jp": "^5.3.1",
+    "@stillwind/cli": "^0.6.0",
+    "@stillwind/integration": "^0.6.0",
+    "@types/fontkit": "^2.0.9",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^6.1.2",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

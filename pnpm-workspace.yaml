@@ -1,0 +1,62 @@
+packages:
+  - apps/*
+  - packages/*
+  - template
+
+# Supply-chain hardening. Other package managers ignore this file; that is fine (see AGENTS.md).
+
+# Only resolve versions that have been public for at least 3 days (minutes).
+minimumReleaseAge: 4320
+# Refuse a version whose publish provenance is weaker than an earlier one of the same package.
+trustPolicy: no-downgrade
+# Transitive dependencies may only come from the registry (no git / tarball URLs).
+blockExoticSubdeps: true
+# Fail instead of silently skipping when a dependency wants to run an install script.
+strictDepBuilds: true
+# Install scripts are opt-in per package. esbuild (via tsx) works without its postinstall check.
+allowBuilds:
+  esbuild: false
+  workerd: false # cf's local runtime resolves its binary from the platform package.
+
+# Versions shared by several workspace packages. template/ doesn't use these: it's synced to its
+# own repository, so its package.json keeps plain ranges.
+catalogs:
+  default:
+    "@cloudflare/vite-plugin": 2.0.0-beta.v.6
+    "@types/node": ^26.6.6
+    "@types/react": ^19.3.0
+    "@types/react-dom": ^19.3.0
+    cf: ^1.0.0-beta.26
+    hono: ^4.13.0
+    react: ^19.3.1
+    react-dom: ^19.3.1
+    typescript: ^7.0.2
+    vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+    vite-plus: 1.4.0
+    vitest: 5.0.5
+
+# Vite+: make plugins (e.g. @vitejs/plugin-react) resolve the Vite and Vitest bundled with vite-plus.
+# Keep these versions in step with vite-plus (`vp toolchain`).
+overrides:
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+
+# The alias reports vite-plus's own version number, which peer ranges like "^8" don't match.
+peerDependencyRules:
+  allowAny:
+    - vite
+
+minimumReleaseAgeExclude:
+  - "@stillwind/*"
+  - stillwind
+
+# Change intents (`pnpm change`) → `pnpm version -r` in the Version PR workflow. Only svgreel is
+# released; the private workspace packages are ignored.
+versioning:
+  maxBump: minor
+  changelog:
+    storage: repository
+  ignore:
+    - "@svgreel-internal/apps-localize"
+    - "@svgreel-internal/apps-website"
+    - my-svgreel

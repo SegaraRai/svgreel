@@ -1,0 +1,82 @@
+name: Deploy
+
+# Cloudflare Workers deployments with the `cf` CLI. `main` updates Previews; `stable` deploys
+# production.
+#
+# - apps/website: `main` → Preview at main.svgreel-preview.roundtrip.dev (`website-preview`);
+#   `stable` → svgreel.roundtrip.dev (`website-production`).
+# - apps/localize: `stable` → svgreel-localize.roundtrip.dev (`localize-production`).
+#
+# A Preview uses the domains of the last production deployment, so deploy `stable` once before the
+# first Preview.
+#
+# Each environment holds the CLOUDFLARE_API_TOKEN secret and the CLOUDFLARE_ACCOUNT_ID variable.
+# Restrict the `*-production` environments to the `stable` branch.
+
+on:
+  push:
+    branches: [main, stable]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CF_SEND_TELEMETRY: "false"
+
+jobs:
+  website:
+    name: Deploy website
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stable'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.ref == 'refs/heads/stable' && 'website-production' || 'website-preview' }}
+    concurrency:
+      group: deploy-website-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "26.13.0"
+          cache: false
+      - name: Build and deploy
+        working-directory: apps/website
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        # Each command builds first, evaluating cloudflare.config.ts for production or a Preview.
+        run: |
+          if [ "$GITHUB_REF_NAME" = stable ]; then
+            vp exec cf deploy
+          else
+            vp exec cf previews deploy "$GITHUB_REF_NAME"
+          fi
+
+  localize:
+    name: Deploy localize
+    if: github.ref == 'refs/heads/stable'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: localize-production
+    concurrency:
+      group: deploy-localize
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "26.13.0"
+          cache: false
+      - name: Test, build and deploy
+        working-directory: apps/localize
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          vp test --run
+          vp exec cf deploy

@@ -1,0 +1,43 @@
+@import "stillwind";
+
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", monospace;
+
+  --text-ui: 0.8125rem;
+  --text-ui--line-height: 1.4;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.4;
+
+  --color-background: light-dark(#f3f4f6, #0e1116);
+  --color-panel: light-dark(#ffffff, #161b22);
+  --color-line: light-dark(#d8dde3, #2a313c);
+  --color-foreground: light-dark(#1f2328, #e6edf3);
+  --color-muted: light-dark(#59636e, #8b949e);
+  --color-accent: light-dark(#2f6bff, #6e9eff);
+  --color-danger: light-dark(#d1242f, #ff6b6b);
+  /* Card caption bar, over any card surface. */
+  --color-tint: rgb(127 127 127 / 0.12);
+
+  /* GitHub's README backgrounds, behind the previewed SVGs. */
+  --color-readme-dark: #0d1117;
+  --color-readme-dark-foreground: #e6edf3;
+  --color-readme-light: #ffffff;
+  --color-readme-light-foreground: #1f2328;
+  --color-checker: #d8d8d8;
+
+  --radius-card: 10px;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+/* index.html is written by the CLI, so the page body can't take style() props. */
+@layer base {
+  body {
+    @apply text-foreground text-ui bg-background;
+  }
+}

@@ -1,0 +1,87 @@
+name: Sync template
+
+# Copies template/ to the template repository (SegaraRai/svgreel-template), with the workspace
+# dependency on svgreel replaced by the version in packages/core/package.json.
+#
+# The template follows released code: it syncs from `stable` and when a GitHub Release is
+# published, and only once that svgreel version is on npm.
+#
+# Environment `template-sync` (restricted to `stable` and release tags): the TEMPLATE_REPO_TOKEN
+# secret, a fine-grained token with Contents read/write on the template repository.
+
+on:
+  push:
+    branches: [stable]
+    paths:
+      - "template/**"
+      - "packages/core/package.json"
+      - "scripts/sync-template.ts"
+      - ".github/workflows/sync-template.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-template
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync the template repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: template-sync
+    steps:
+      # A release event checks out the release tag; the others check out the pushed ref.
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+          path: main
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          node-version: "26.13.0"
+          cache: false
+          run-install: false
+      - name: Check that the svgreel version is published
+        id: published
+        working-directory: main
+        run: |
+          version=$(node --print "require('./packages/core/package.json').version")
+          if npm view "svgreel@$version" version > /dev/null 2>&1; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::svgreel@$version is not on npm yet; skipping the template sync."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.published.outputs.ok == 'true'
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: SegaraRai/svgreel-template
+          token: ${{ secrets.TEMPLATE_REPO_TOKEN }}
+          path: template-repo
+      - if: steps.published.outputs.ok == 'true'
+        run: node main/scripts/sync-template.ts template-repo
+      - if: steps.published.outputs.ok == 'true'
+        name: Update the lockfile
+        working-directory: template-repo
+        # The template's pnpm-workspace.yaml exempts svgreel from minimumReleaseAge, so a version
+        # published minutes ago resolves.
+        run: vp i --lockfile-only
+      - if: steps.published.outputs.ok == 'true'
+        name: Commit and push
+        working-directory: template-repo
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          git add --all
+          if git diff --cached --quiet; then
+            echo "The template repository is up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync from svgreel@${SOURCE_SHA::7}"
+          git push

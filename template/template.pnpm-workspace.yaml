@@ -1,0 +1,28 @@
+# Supply-chain hardening. Other package managers ignore this file; that is fine (see AGENTS.md).
+
+# Only resolve versions that have been public for at least 3 days (minutes).
+minimumReleaseAge: 4320
+# Refuse a version whose publish provenance is weaker than an earlier one of the same package.
+trustPolicy: no-downgrade
+# Transitive dependencies may only come from the registry (no git / tarball URLs).
+blockExoticSubdeps: true
+# Fail instead of silently skipping when a dependency wants to run an install script.
+strictDepBuilds: true
+# Install scripts are opt-in per package. esbuild (via tsx) works without its postinstall check.
+allowBuilds:
+  esbuild: false
+
+# Vite+ (used for `pnpm check`): resolve Vite and Vitest to the copies bundled with vite-plus.
+# Keep these versions in step with vite-plus (`vp toolchain`).
+overrides:
+  vite@*: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vitest@*: 5.0.5
+# The alias reports vite-plus's own version number, which peer ranges like "^8" don't match.
+peerDependencyRules:
+  allowAny:
+    - vite
+# svgreel and stillwind are updated by its author for this template: take new versions right away.
+minimumReleaseAgeExclude:
+  - "@stillwind/*"
+  - stillwind
+  - svgreel
