@@ -42,10 +42,10 @@
 ## Development
 
 ```sh
-pnpm install
-pnpm exec vp run check   # build svgreel, then format, lint, type check (and Stillwind checks)
-pnpm exec vp run test    # unit tests in every workspace
-pnpm exec vp run build   # svgreel, the template's compositions, the website
+vp install
+vp run check   # build svgreel, then format, lint, type check (and Stillwind checks)
+vp run test    # unit tests in every workspace
+vp run build   # svgreel, the template's compositions, the website
 ```
 
 Record a change intent with `pnpm change` for user-visible changes to svgreel. See

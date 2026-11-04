@@ -21,7 +21,7 @@ const BRAND_FILES = ["logo-light.svg", "logo-dark.svg", "logo-light.still.svg", 
  * - public/examples/: `svgreel build` of EXAMPLES from packages/core/examples, with its preview page.
  * - public/brand/: copies of packages/core/assets/logo-*.svg.
  *
- * Both are gitignored. Like `vp run examples`, the CLI runs from source through tsx, and the
+ * Both are gitignored. Like `vp run examples`, the CLI runs from source through oxc-node, and the
  * examples import svgreel's source (packages/core/tsconfig.json). The preview page comes from
  * dist/preview, so svgreel must be built first (`vp run svgreel#build`).
  */
@@ -39,13 +39,16 @@ export function svgreelAssets(): AstroIntegration {
     const out = path.join(publicDir, "examples");
     fs.rmSync(out, { recursive: true, force: true });
     if (!fs.existsSync(path.join(core, "dist/preview"))) {
-      throw new Error("svgreel's preview page is missing. Build svgreel first: pnpm exec vp run svgreel#build");
+      throw new Error("svgreel's preview page is missing. Build svgreel first: vp run svgreel#build");
     }
-    const tsx = pathToFileURL(createRequire(path.join(core, "package.json")).resolve("tsx/esm")).href;
+    // The TypeScript loader the CLI registers for compositions, here also for the CLI itself.
+    // Its "./register" export has only an "import" condition, so resolve the package instead.
+    const oxcNode = path.dirname(createRequire(path.join(core, "package.json")).resolve("@oxc-node/core/package"));
+    const loader = pathToFileURL(path.join(oxcNode, "register.mjs")).href;
     // From packages/core, so the examples compile with its tsconfig and resolve its fonts.
     const result = spawnSync(
       process.execPath,
-      ["--import", tsx, "src/cli/main.ts", "build", ...EXAMPLES, "--dir", "examples", "--out", out, "--no-refresh"],
+      ["--import", loader, "src/cli/main.ts", "build", ...EXAMPLES, "--dir", "examples", "--out", out, "--no-refresh"],
       { cwd: core, stdio: "inherit" },
     );
     if (result.status !== 0) {

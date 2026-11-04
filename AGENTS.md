@@ -37,28 +37,30 @@ Workspace packages other than `svgreel` are private and named `@svgreel-internal
 
 ## Commands
 
-Tooling is [Vite+](https://viteplus.dev) (`vp`) and pnpm. Shared versions are in the catalog in
+Tooling is [Vite+](https://viteplus.dev) (`vp`), with pnpm as its package manager. Run
+everything through `vp`, not `pnpm exec vp`. Shared versions are in the catalog in
 `pnpm-workspace.yaml`; format, lint and the test project list are in the root `vite.config.ts`.
 
 ```sh
-pnpm install
-pnpm exec vp run check     # build svgreel, Stillwind lint/fmt check, then vp check (format, lint, types)
-pnpm exec vp run fix       # auto-fix formatting (vp check --fix, stillwind fmt)
-pnpm exec vp run test      # every workspace's unit tests (imports from "vite-plus/test")
-pnpm exec vp run build     # svgreel (dist/), the template's compositions, the website (apps/website/dist)
-pnpm exec vp run examples  # packages/core/examples → packages/core/examples-dist/index.html
-pnpm exec vp run examples:watch   # same, rebuilt on save; preview with live param controls on localhost
-pnpm exec vp run template:build   # svgreel, then template/compositions → template/dist (args pass through)
-pnpm exec vp run template:watch   # same, rebuilt on save, served like examples:watch
+vp install
+vp run check            # build svgreel, Stillwind lint/fmt check, then vp check (format, lint, types)
+vp run fix              # auto-fix formatting (vp check --fix, stillwind fmt)
+vp run test             # every workspace's unit tests (imports from "vite-plus/test")
+vp run build            # svgreel (dist/), the template's compositions, the website (apps/website/dist)
+vp run examples         # packages/core/examples → packages/core/examples-dist/index.html
+vp run examples:watch   # same, rebuilt on save; preview with live param controls on localhost
+vp run template:build   # svgreel, then template/compositions → template/dist (args pass through)
+vp run template:watch   # same, rebuilt on save, served like examples:watch
 ```
 
-The watch tasks run until stopped. `examples:watch` runs the CLI from source, so edits to
-`packages/core/src` apply on the next rebuild; `template:watch` uses the built CLI and needs a
-restart after them. Agents shouldn't start them unprompted (they hold a port).
+The watch tasks run until stopped. `examples:watch` runs the CLI from source with `vpx`, so
+edits to `packages/core/src` apply on the next rebuild; `template:watch` uses the built CLI and
+needs a restart after them. Agents shouldn't start them unprompted (they hold a port).
 
 The template and apps type check against svgreel's built `dist/` types, so a bare `vp check`
-fails until svgreel is built; the `check` task builds it first. Inside one package, `pnpm build`,
-`pnpm test` and so on run that package's scripts.
+fails until svgreel is built; the `check` task builds it first. Inside one package, `vp run build`,
+`vp run test` and so on run that package's scripts. Run TypeScript files with `vpx <file>`
+(not tsx), and installed binaries with `vp exec <bin>`.
 
 Run `check`, `test` and `examples` before finishing a change, and look at the examples in the
 preview when the change is visible.
@@ -89,8 +91,8 @@ preview when the change is visible.
   the build, and round animated values (see `round()` in `src/animation/helpers.ts`).
 - **No Remotion code or dependency.** The API mirrors Remotion's names, but Remotion's license
   isn't compatible with an MIT template used by companies.
-- Dependencies: keep runtime dependencies minimal (fontkit, htmlparser2, stillwind, tsx). The
-  release-age and install-script protections in `pnpm-workspace.yaml` stay on.
+- Dependencies: keep runtime dependencies minimal (fontkit, htmlparser2, stillwind,
+  @oxc-node/core). The release-age and install-script protections in `pnpm-workspace.yaml` stay on.
 - Paths in the rules above (`src/`, `docs/`, …) are relative to `packages/core/`.
 
 ### template
@@ -156,7 +158,7 @@ preview when the change is visible.
 - Before you change styles, read the relevant Markdown docs in `node_modules/stillwind/docs/`.
   Start with `guides/recommended-practices.md`. `node_modules/stillwind/skills/stillwind/SKILL.md`
   lists the page for each task.
-- After you change styles, run `pnpm exec stillwind lint --fix` and `pnpm exec stillwind fmt` in
+- After you change styles, run `vp exec stillwind lint --fix` and `vp exec stillwind fmt` in
   `packages/core` or `apps/website`, and fix the remaining findings. `vp run check` fails on any
   finding.
 

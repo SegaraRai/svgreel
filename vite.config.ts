@@ -73,7 +73,7 @@ export default defineConfig({
         command: "vp run svgreel#examples",
       },
       // Long-running: rebuilds on save and serves the preview with live param controls. Through
-      // tsx, so edits to packages/core/src apply on the next rebuild too.
+      // vpx, so edits to packages/core/src apply on the next rebuild too.
       "examples:watch": {
         command: "vp run svgreel#examples:watch",
         cache: false,

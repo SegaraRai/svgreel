@@ -13,7 +13,7 @@ trustPolicy: no-downgrade
 blockExoticSubdeps: true
 # Fail instead of silently skipping when a dependency wants to run an install script.
 strictDepBuilds: true
-# Install scripts are opt-in per package. esbuild (via tsx) works without its postinstall check.
+# Install scripts are opt-in per package. esbuild works without its postinstall check.
 allowBuilds:
   esbuild: false
   workerd: false # cf's local runtime resolves its binary from the platform package.

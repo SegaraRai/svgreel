@@ -18,8 +18,6 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
-import { register } from "tsx/esm/api";
-
 import { compile } from "../compiler/compile.js";
 import { registerFonts } from "../fonts.js";
 import { describeParams, parseParamValue, type ParamInfo, type ParamValues } from "../params.js";
@@ -337,8 +335,7 @@ async function main() {
     console.error(`No compositions found: add ${path.relative(ROOT, COMPOSITIONS) || "."}/<name>/index.tsx`);
     return false;
   }
-  // Compositions are TypeScript + JSX; tsx compiles them on import (using the project's tsconfig).
-  register();
+  await registerTypeScript();
   fs.mkdirSync(OUT, { recursive: true });
   let ok = true;
   for (const n of names.length ? names : all) {
@@ -385,11 +382,19 @@ async function renderLive(req: RenderRequest): Promise<RenderResponse> {
 }
 
 /**
+ * Compositions are TypeScript + JSX: oxc-node compiles them on import, with the tsconfig that
+ * includes each file.
+ */
+async function registerTypeScript() {
+  await import("@oxc-node/core/register");
+}
+
+/**
  * The live render process: imports compositions on request and keeps them loaded. Watch mode
  * replaces it after every change, so edited modules are imported fresh.
  */
-function runWorker() {
-  register();
+async function runWorker() {
+  await registerTypeScript();
   process.on("disconnect", () => process.exit(0));
   process.on("message", (msg: { id: number; req: RenderRequest }) => {
     void renderLive(msg.req)
@@ -521,7 +526,7 @@ async function watch() {
 }
 
 if (values.worker) {
-  runWorker();
+  await runWorker();
 } else if (values.watch) {
   await watch();
 } else {

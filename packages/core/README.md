@@ -85,7 +85,7 @@ svgreel build [names...] [--watch] [--port 5331] [--dir compositions] [--out dis
 
 Each `<dir>/<name>/index.tsx` that default-exports `defineComposition(...)` becomes
 `<out>/<name>/<name>[-<value>…].svg` plus `.still.svg`. Compositions are TypeScript + JSX and
-are compiled on the fly (tsx); your `tsconfig.json` needs `"jsx": "react-jsx"`.
+are compiled on the fly (oxc-node); your `tsconfig.json` needs `"jsx": "react-jsx"`.
 
 To publish the preview page on a website, build with `--no-refresh`: the page then stops checking
 for newer builds, which it otherwise does every second by reloading `preview-data.js`.
