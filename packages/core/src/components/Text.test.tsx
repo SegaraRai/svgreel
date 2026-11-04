@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 
+import { round } from "../animation/helpers.js";
 import { registerFonts } from "../fonts.js";
 import { fontsource } from "../fontsource.js";
 import { all, render, styleOf } from "../testing.js";
@@ -150,6 +151,15 @@ describe("CodeBlock helpers", () => {
     expect(drawn).toContain("#0f0");
     expect(drawn).toContain("text");
     expect(drawn).not.toContain("keyword");
+  });
+
+  it("puts the caret where the reveal has reached, despite float error", () => {
+    // The second line starts at 12 + 18 * 0.2 + 2 = 17.6000…01, so at frame 18 the reveal has
+    // reached 2 characters but (18 - start) / 0.2 is 1.999…: the caret must still count 2.
+    const lines = ["abcdefghijklmnopqr", "abcdefghij"];
+    const block = <CodeBlock lines={lines} width={400} font={ts} theme={theme} start={12} speed={0.2} />;
+    const caret = styleOf(all(render(block, { frame: 18 }), "rect").at(-1)!).transform;
+    expect(caret?.startsWith(`translate(${round(22 + measureText("ab", ts))}px,`)).toBe(true);
   });
 
   it("adds the header bar only with a file or language", () => {

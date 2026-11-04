@@ -1,4 +1,4 @@
-import { blink, round, tween } from "../animation/helpers.js";
+import { blink, round, tween, typedChars } from "../animation/helpers.js";
 import type { TextStyle } from "../fonts.js";
 import { useCurrentFrame } from "../timeline.js";
 import { measureText, Text } from "./Text.js";
@@ -163,7 +163,7 @@ export function CodeBlock({
   const active = timing.findIndex((tm) => frame < tm.end);
   const caretLine = active === -1 ? lines.length - 1 : active;
   const caretChars =
-    active === -1 ? [...lines[caretLine]].length : Math.max(0, Math.floor((frame - timing[caretLine].start) / speed));
+    active === -1 ? [...lines[caretLine]].length : Math.max(0, typedChars(frame - timing[caretLine].start, speed));
   const caretX = padding + measureText([...lines[caretLine]].slice(0, caretChars).join(""), font);
   const fileW = file
     ? measureText(file, {

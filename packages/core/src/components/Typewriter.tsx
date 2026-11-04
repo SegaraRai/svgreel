@@ -1,4 +1,4 @@
-import { blink, round } from "../animation/helpers.js";
+import { blink, round, typedChars } from "../animation/helpers.js";
 import type { TextStyle } from "../fonts.js";
 import { useCurrentFrame } from "../timeline.js";
 import { measureText, Text } from "./Text.js";
@@ -36,7 +36,7 @@ export function Typewriter({
   const frame = useCurrentFrame();
   const chars = [...text];
   const eraseSpeed = Math.max(1, speed / 2);
-  const typed = Math.min(chars.length, Math.max(0, Math.floor((frame - start) / speed) + 1));
+  const typed = Math.min(chars.length, Math.max(0, typedChars(frame - start, speed) + 1));
   const erased =
     eraseAt === undefined ? 0 : Math.min(chars.length, Math.max(0, Math.floor((frame - eraseAt) / eraseSpeed) + 1));
   const shown = frame < start ? 0 : Math.max(0, typed - erased);

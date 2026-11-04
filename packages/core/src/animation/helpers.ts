@@ -17,6 +17,13 @@ export const round = (n: number, digits = 2) => {
 };
 
 /**
+ * Characters typed after `elapsed` frames at `speed` frames per character. Tolerates float error:
+ * line start times add up fractional speeds, and an elapsed 0.3999… / 0.2 must count 2, the
+ * character the line's linear reveal has reached, not 1.
+ */
+export const typedChars = (elapsed: number, speed: number) => Math.floor(elapsed / speed + 1e-6);
+
+/**
  * interpolate() clamped on both sides, with an easing (default ease-out cubic).
  *
  *   tween(frame, [10, 30], [0, 1])  // 0 before frame 10, eases to 1 by frame 30

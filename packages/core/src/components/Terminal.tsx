@@ -1,4 +1,4 @@
-import { blink, round, tween } from "../animation/helpers.js";
+import { blink, round, tween, typedChars } from "../animation/helpers.js";
 import type { TextStyle } from "../fonts.js";
 import { useCurrentFrame } from "../timeline.js";
 import { measureText, Text } from "./Text.js";
@@ -110,7 +110,7 @@ export function Terminal({
   });
   const typing = caretRow >= 0 && frame < times[caretRow].end;
   const caretText = caretRow >= 0 ? (lines[caretRow] as { command: string }).command : "";
-  const typed = typing ? Math.floor((frame - times[caretRow].start) / speed) : [...caretText].length;
+  const typed = typing ? typedChars(frame - times[caretRow].start, speed) : [...caretText].length;
   const caretX = promptW + measureText([...caretText].slice(0, typed).join(""), font);
   const caretOn = caret && caretRow >= 0 && (typing || blink(frame) === 1);
 
