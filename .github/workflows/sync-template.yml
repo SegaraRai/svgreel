@@ -64,11 +64,28 @@ jobs:
               ;;
           esac
       - if: steps.published.outputs.ok == 'true'
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: SegaraRai/svgreel-template
-          token: ${{ secrets.TEMPLATE_REPO_TOKEN }}
-          path: template-repo
+        name: Clone the template repository
+        # actions/checkout cannot check out an empty repository, so the first sync starts one.
+        # The token goes in an HTTP header in the clone's own config, not in the remote URL.
+        env:
+          TOKEN: ${{ secrets.TEMPLATE_REPO_TOKEN }}
+        run: |
+          url=https://github.com/SegaraRai/svgreel-template.git
+          basic=$(printf 'x-access-token:%s' "$TOKEN" | base64 --wrap=0)
+          echo "::add-mask::$basic"
+          auth="AUTHORIZATION: basic $basic"
+          # Exit code 2: the repository is reachable but has no main branch yet.
+          status=0
+          git -c http.extraheader="$auth" ls-remote --exit-code --heads "$url" main > /dev/null || status=$?
+          case "$status" in
+            0) git -c http.extraheader="$auth" clone --depth 1 --branch main "$url" template-repo ;;
+            2)
+              git init --initial-branch main template-repo
+              git -C template-repo remote add origin "$url"
+              ;;
+            *) exit "$status" ;;
+          esac
+          git -C template-repo config http.https://github.com/.extraheader "$auth"
       - if: steps.published.outputs.ok == 'true'
         run: node main/scripts/sync-template.ts template-repo
       - if: steps.published.outputs.ok == 'true'
