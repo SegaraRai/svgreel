@@ -148,7 +148,7 @@ Releases follow the change intents; nobody edits versions by hand.
 
 | Environment           | Workflow            | Branch   | Holds                                                    |
 | --------------------- | ------------------- | -------- | -------------------------------------------------------- |
-| `npm-release`         | `release.yml`       | `main`   | npm trusted publishing; `NPM_TOKEN` secret until trusted |
+| `npm-release`         | `release.yml`       | `main`   | nothing stored: npm trusts the workflow (OIDC)           |
 | `template-sync`       | `sync-template.yml` | `stable` | `TEMPLATE_REPO_TOKEN` secret (svgreel-template contents) |
 | `website-preview`     | `deploy.yml`        | `main`   | `CLOUDFLARE_API_TOKEN` secret, `CLOUDFLARE_ACCOUNT_ID`   |
 | `website-production`  | `deploy.yml`        | `stable` | `CLOUDFLARE_API_TOKEN` secret, `CLOUDFLARE_ACCOUNT_ID`   |

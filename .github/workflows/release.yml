@@ -7,8 +7,8 @@ name: Release
 #   approving the staged version with 2FA. Then drafts the GitHub Release, which the maintainer
 #   publishes after the npm approval (GitHub creates the tag then).
 #
-# Environment `npm-release`: trusted publishing (OIDC) for this workflow on npm. Until the
-# package trusts the workflow, the NPM_TOKEN environment secret is used instead.
+# Environment `npm-release`: npm trusts this workflow (trusted publishing over OIDC), so no token
+# is stored.
 
 on:
   # `pnpm version -r` updates the ledger, so this push always carries a version commit.
@@ -115,19 +115,9 @@ jobs:
             *-*) echo 'name=next' >> "$GITHUB_OUTPUT" ;;
             *) echo 'name=latest' >> "$GITHUB_OUTPUT" ;;
           esac
-      - name: Configure the bootstrap token
-        # Trusted publishing needs no token. A package must exist before npm can trust this
-        # workflow, so publications before that use NPM_TOKEN.
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> "$HOME/.npmrc"
-          fi
       - name: Stage
         env:
           NPM_TAG: ${{ steps.tag.outputs.name }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         # Branch rules and the job condition replace pnpm's Git checks. The verify job already ran
         # the tests that prepublishOnly would run.
         run: vp exec pnpm stage publish -r --no-git-checks --ignore-scripts --tag "$NPM_TAG" --report-summary
