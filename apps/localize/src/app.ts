@@ -17,6 +17,7 @@ GET /github/<owner>/<repo>/<path with {lang}>.svg?langs=en,ja[&fallback=en][&ref
 
 Returns <path> from the GitHub repository with {lang} replaced by the language in langs that
 best matches the request's Accept-Language, or fallback (default: the first of langs).
+In an HTML srcset, write the comma as %2C (langs=en%2Cja): a raw comma separates candidates.
 `;
 
 /**
@@ -25,7 +26,9 @@ best matches the request's Accept-Language, or fallback (default: the first of l
  * Serves the file from the repository with `{lang}` replaced by the language that best matches
  * the request's Accept-Language (GitHub's image proxy, camo, forwards the viewer's). `langs`
  * lists the files that exist; `fallback` (default: the first of `langs`) is used when nothing
- * matches; `ref` defaults to the default branch.
+ * matches; `ref` defaults to the default branch. In a `srcset` (`<picture><source>`), `langs`
+ * must use `%2C` for its commas, because a raw comma separates image candidates there; GitHub
+ * cuts the URL at it.
  *
  * Tests replace `fetchUpstream`. GET routes also answer HEAD, without a body.
  */

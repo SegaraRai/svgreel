@@ -15,10 +15,10 @@
 <!-- The promo is packages/core/examples/promo, in English or Japanese by the viewer's language (apps/localize). -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.svg?langs=en,ja">
-  <source media="(not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.svg?langs=en,ja">
-  <source media="(prefers-color-scheme: dark)" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.still.svg?langs=en,ja">
-  <img src="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.still.svg?langs=en,ja" alt="svgreel promo: write a React component where SVG = f(time), compile its frames into CSS keyframes, and get a self-contained animated SVG with outlined text, components, dark/light and language variants, and beat sync." width="100%">
+  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.svg?langs=en%2Cja">
+  <source media="(not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.svg?langs=en%2Cja">
+  <source media="(prefers-color-scheme: dark)" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.still.svg?langs=en%2Cja">
+  <img src="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.still.svg?langs=en%2Cja" alt="svgreel promo: write a React component where SVG = f(time), compile its frames into CSS keyframes, and get a self-contained animated SVG with outlined text, components, dark/light and language variants, and beat sync." width="100%">
 </picture>
 </p>
 

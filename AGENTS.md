@@ -112,7 +112,9 @@ preview when the change is visible.
 - `GET /github/<owner>/<repo>/<path with {lang}>.svg?langs=en,ja[&fallback=en][&ref=main]`
   fetches the file from raw.githubusercontent.com with `{lang}` replaced by the best match for
   Accept-Language (GitHub's camo proxy forwards the viewer's). It is a
-  [Hono](https://hono.dev/) app; `src/app.ts` documents it.
+  [Hono](https://hono.dev/) app; `src/app.ts` documents it. In a `srcset`, write the comma in
+  `langs` as `%2C` (`langs=en%2Cja`): a raw comma separates candidates, and GitHub cuts the URL
+  there (the root README's promo does this).
 - It serves other people's repository content: keep the path validation, the CSP header and the
   size limit. Tests call `createApp()` with a fake `fetch`; they never reach the network.
 - `pnpm dev` and `pnpm deploy` use the `cf` CLI, which builds through `@cloudflare/vite-plugin`

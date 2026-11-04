@@ -30,6 +30,13 @@ describe("localize app", () => {
     expect(await res.text()).toBe("<svg/>");
   });
 
+  it("accepts an encoded comma in langs, as srcset needs", async () => {
+    // A raw comma in srcset separates image candidates, so <source> URLs must use %2C.
+    const { calls, request } = upstream();
+    await request(`${BASE}?langs=en%2Cja`, { headers: { "accept-language": "ja" } });
+    expect(calls).toEqual(["https://raw.githubusercontent.com/SegaraRai/SegaraRai/HEAD/assets/banner-ja.svg"]);
+  });
+
   it("uses the fallback, then the first language, and honors ref", async () => {
     const { calls, request } = upstream();
     await request(`${BASE}?langs=en,ja&fallback=ja`);
