@@ -120,7 +120,8 @@ preview when the change is visible.
   `langs` as `%2C` (`langs=en%2Cja`): a raw comma separates candidates, and GitHub cuts the URL
   there (the root README's promo does this).
 - It serves other people's repository content: keep the path validation, the CSP header and the
-  size limit. Tests call `createApp()` with a fake `fetch`; they never reach the network.
+  size limit. CORS allows any origin (GET and HEAD, no credentials), so pages can fetch the SVGs.
+  Tests call `createApp()` with a fake `fetch`; they never reach the network.
 - `pnpm dev` and `pnpm deploy` use the `cf` CLI, which builds through `@cloudflare/vite-plugin`
   with `cloudflare.config.ts`. Production: `https://svgreel-localize.roundtrip.dev/`.
 

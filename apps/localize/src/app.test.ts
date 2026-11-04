@@ -75,4 +75,24 @@ describe("localize app", () => {
     expect((await request("https://localize.example/nope")).status).toBe(404);
     expect((await request(`${BASE}?langs=en`, { method: "POST" })).status).toBe(405);
   });
+
+  it("allows cross-origin requests and answers preflights", async () => {
+    const { calls, request } = upstream();
+    const origin = { origin: "https://example.com" };
+    const res = await request(`${BASE}?langs=en`, { headers: origin });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(res.headers.get("content-security-policy")).toContain("default-src 'none'");
+    const bad = await request(`${BASE}`, { headers: origin });
+    expect(bad.headers.get("access-control-allow-origin")).toBe("*");
+
+    const preflight = await request(`${BASE}?langs=en`, {
+      method: "OPTIONS",
+      headers: { ...origin, "access-control-request-method": "GET" },
+    });
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("*");
+    expect(preflight.headers.get("access-control-allow-methods")).toBe("GET,HEAD");
+    expect(calls).toHaveLength(1);
+  });
 });

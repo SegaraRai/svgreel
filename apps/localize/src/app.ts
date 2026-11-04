@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 import { negotiate, parseAcceptLanguage } from "./negotiate.ts";
 
@@ -11,7 +12,7 @@ const REF = /^[A-Za-z0-9._/-]{1,255}$/;
 const TAG = /^[A-Za-z0-9-]{1,35}$/;
 const MAX_LANGS = 32;
 
-const USAGE = `svgreel localize
+const USAGE = `svgreel localize (https://github.com/SegaraRai/svgreel)
 
 GET /github/<owner>/<repo>/<path with {lang}>.svg?langs=en,ja[&fallback=en][&ref=main]
 
@@ -30,10 +31,22 @@ In an HTML srcset, write the comma as %2C (langs=en%2Cja): a raw comma separates
  * must use `%2C` for its commas, because a raw comma separates image candidates there; GitHub
  * cuts the URL at it.
  *
+ * Every response allows any origin (CORS), and OPTIONS preflights are answered.
+ *
  * Tests replace `fetchUpstream`. GET routes also answer HEAD, without a body.
  */
 export function createApp(fetchUpstream: typeof fetch = (input, init) => fetch(input, init)): Hono {
   const app = new Hono();
+
+  // Any page may fetch the SVGs (for inline use or a canvas); there are no credentials to protect.
+  app.use(
+    "*",
+    cors({
+      origin: "*",
+      allowMethods: ["GET", "HEAD"],
+      maxAge: 86400,
+    }),
+  );
 
   app.get("/", (c) => c.text(USAGE));
 
