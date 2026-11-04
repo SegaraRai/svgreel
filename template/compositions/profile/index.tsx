@@ -47,8 +47,11 @@ const OUTRO = 120;
 const N = INTRO + SCENE * profile.projects.length + OUTRO;
 const sceneStart = (i: number) => INTRO + i * SCENE;
 const OUTRO_START = sceneStart(profile.projects.length);
-/** Frames of the loop-seam wipe that fall before the loop point. */
-const SEAM = 11;
+/**
+ * Frames of the loop-seam wipe that fall before the loop point: the wipe's `duration` (12), so
+ * frame 0 is past the point where the last band leaves the frame and shows no sliver of it.
+ */
+const SEAM = 12;
 /** Docked logo size, title x, right-hand card x in project scenes. */
 const DOCK = 78;
 const TITLE_X = 80 + DOCK + 18;

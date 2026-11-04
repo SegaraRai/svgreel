@@ -49,8 +49,12 @@ const SCENE = 120;
 const SCENES = ["intro", "write", "compile", "features", "outro"] as const;
 const N = SCENE * SCENES.length;
 const sceneStart = (name: (typeof SCENES)[number]) => SCENES.indexOf(name) * SCENE;
-/** Frames of the loop-seam wipe that fall before the loop point. */
-const SEAM = 11;
+/**
+ * Frames of the loop-seam wipe that fall before the loop point. 12 (the wipe's `duration`) puts
+ * frame 0 at the wipe's local frame 12, where every band is past the right edge; at 11 the last
+ * band still showed as a sliver in the bottom-right corner of frame 0.
+ */
+const SEAM = 12;
 
 const SANS = "Figtree";
 const WORDMARK = "Figtree Italic";
