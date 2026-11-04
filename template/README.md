@@ -2,8 +2,10 @@
 
 <a href="https://github.com/SegaraRai/svgreel">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SegaraRai/svgreel/main/assets/logo-dark.svg">
-    <img src="https://raw.githubusercontent.com/SegaraRai/svgreel/main/assets/logo-light.svg" alt="svgreel" width="240" height="84">
+    <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://raw.githubusercontent.com/SegaraRai/svgreel/main/packages/core/assets/logo-dark.svg">
+    <source media="(not (prefers-reduced-motion: reduce))" srcset="https://raw.githubusercontent.com/SegaraRai/svgreel/main/packages/core/assets/logo-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SegaraRai/svgreel/main/packages/core/assets/logo-dark.still.svg">
+    <img src="https://raw.githubusercontent.com/SegaraRai/svgreel/main/packages/core/assets/logo-light.still.svg" alt="svgreel" width="240" height="84">
   </picture>
 </a>
 

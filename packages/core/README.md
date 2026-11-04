@@ -1,7 +1,9 @@
 <h1>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-    <img src="assets/logo-light.svg" alt="svgreel" width="240" height="84">
+    <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="assets/logo-dark.svg">
+    <source media="(not (prefers-reduced-motion: reduce))" srcset="assets/logo-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.still.svg">
+    <img src="assets/logo-light.still.svg" alt="svgreel" width="240" height="84">
   </picture>
 </h1>
 

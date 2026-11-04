@@ -1,12 +1,26 @@
-<h1>
+<h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="packages/core/assets/logo-dark.svg">
-    <img src="packages/core/assets/logo-light.svg" alt="svgreel" width="240" height="84">
+    <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="packages/core/assets/logo-dark.svg">
+    <source media="(not (prefers-reduced-motion: reduce))" srcset="packages/core/assets/logo-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="packages/core/assets/logo-dark.still.svg">
+    <img src="packages/core/assets/logo-light.still.svg" alt="svgreel" width="240" height="84">
   </picture>
 </h1>
 
-Motion graphics as React components, compiled into self-contained animated SVGs that work in a
-GitHub README. This repository holds the package and everything around it.
+<p align="center">
+  Motion graphics as React components, compiled into self-contained animated SVGs that work in a
+  GitHub README. This repository holds the package and everything around it.
+</p>
+
+<!-- The promo is packages/core/examples/promo, in English or Japanese by the viewer's language (apps/localize). -->
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.svg?langs=en,ja">
+  <source media="(not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.svg?langs=en,ja">
+  <source media="(prefers-color-scheme: dark)" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.still.svg?langs=en,ja">
+  <img src="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.still.svg?langs=en,ja" alt="svgreel promo: write a React component where SVG = f(time), compile its frames into CSS keyframes, and get a self-contained animated SVG with outlined text, components, dark/light and language variants, and beat sync." width="100%">
+</picture>
+</p>
 
 | Directory                      | What it is                                                                                             |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------ |

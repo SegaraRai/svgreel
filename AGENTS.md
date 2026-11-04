@@ -21,8 +21,10 @@ packages/core/    the svgreel package (name "svgreel")
   preview/          preview page (React), bundled to dist/preview by `vp build`
   docs/             user docs, shipped in the package
   examples/         demo compositions, shipped in the package; also the visual test bed
-  assets/           README logo: copies of examples-dist/logo/logo-{light,dark}.svg (refresh after
-                    changing examples/logo)
+  assets/           README logo: copies of examples-dist/logo/logo-{light,dark}{,.still}.svg (refresh
+                    after changing examples/logo)
+assets/           the root README's promo: copies of packages/core/examples-dist/promo/*.svg
+                  (refresh after changing examples/promo), served through apps/localize
 template/         the template repository's contents (package "my-svgreel")
 apps/localize/    Cloudflare Worker (Hono): picks the SVG for the viewer's Accept-Language
 apps/website/     the website (placeholder on Cloudflare Workers static assets)
