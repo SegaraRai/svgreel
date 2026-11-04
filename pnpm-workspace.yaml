@@ -18,8 +18,8 @@ allowBuilds:
   esbuild: false
   workerd: false # cf's local runtime resolves its binary from the platform package.
 
-# Versions shared by several workspace packages. template/ doesn't use these: it's synced to its
-# own repository, so its package.json keeps plain ranges.
+# Versions shared by workspace packages. template/ may use them too: the sync to its own repository
+# (scripts/sync-template.ts) replaces `catalog:` with these versions.
 catalogs:
   default:
     # apps/website writes cf's Build Output itself: keep these at the versions cf depends on.

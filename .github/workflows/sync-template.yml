@@ -1,7 +1,8 @@
 name: Sync template
 
 # Copies template/ to the template repository (SegaraRai/svgreel-template), with the workspace
-# dependency on svgreel replaced by the version in packages/core/package.json.
+# dependency on svgreel replaced by the version in packages/core/package.json and `catalog:`
+# ranges by the catalog's versions.
 #
 # The template follows released code: it syncs from `stable` and when a GitHub Release is
 # published, and only once that svgreel version is on npm.
@@ -16,6 +17,7 @@ on:
       - "template/**"
       - "packages/core/package.json"
       - "scripts/sync-template.ts"
+      - "pnpm-workspace.yaml"
       - ".github/workflows/sync-template.yml"
   release:
     types: [published]

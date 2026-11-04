@@ -100,12 +100,14 @@ preview when the change is visible.
 - `template/` is copied to svgreel-template by `.github/workflows/sync-template.yml`
   (`scripts/sync-template.ts`). The copy renames `template.pnpm-workspace.yaml` to
   `pnpm-workspace.yaml` (under its real name it would make `template/` a separate workspace
-  root here) and replaces `"svgreel": "workspace:*"` with `^<packages/core version>`.
+  root here), replaces `"svgreel": "workspace:*"` with `^<packages/core version>`, and replaces
+  `catalog:` ranges with the catalog's versions (read from `vp pm pack`'s manifest).
 - The sync runs from `stable` and on published GitHub Releases, and waits until that svgreel
   version is on npm. The template here may use unreleased features; they reach users with the
   release.
-- Keep the template's own dependency ranges as plain versions, not `catalog:`: the copy has no
-  catalog. Its pnpm-workspace.yaml repeats the supply-chain settings for users.
+- The template's dependencies may use `catalog:` (`vp migrate` writes it); the copy gets plain
+  versions. Its pnpm-workspace.yaml repeats the supply-chain settings for users, and its
+  `overrides` name vite-plus's Vite and Vitest versions: keep them in step with the catalog.
 - It's a user-facing starter: its README and AGENTS.md are written for template users and their
   agents, not for svgreel development.
 - The "starting from nothing" agent prompt in its README is repeated in the root README,

@@ -12,17 +12,30 @@ strictDepBuilds: true
 allowBuilds:
   esbuild: false
 
-# Vite+ (used for `pnpm check`): resolve Vite and Vitest to the copies bundled with vite-plus.
+# Vite+ (used for `pnpm check`): resolve Vite to the copy bundled with vite-plus.
 # Keep these versions in step with vite-plus (`vp toolchain`).
 overrides:
-  vite@*: npm:@voidzero-dev/vite-plus-core@1.4.0
-  vitest@*: 5.0.5
+  vite@*: npm:@voidzero-dev/vite-plus-core@1.5.0
 # The alias reports vite-plus's own version number, which peer ranges like "^8" don't match.
 peerDependencyRules:
   allowAny:
     - vite
-# svgreel and stillwind are updated by its author for this template: take new versions right away.
+  allowedVersions:
+    vite: "*"
+# svgreel and stillwind are updated by its author for this template, and the Vite+ toolchain is
+# released as one set with vite-plus: take new versions right away.
 minimumReleaseAgeExclude:
   - "@stillwind/*"
   - stillwind
   - svgreel
+  - vite-plus
+  - "@voidzero-dev/*"
+  - oxlint
+  - "@oxlint/*"
+  - oxlint-tsgolint
+  - "@oxlint-tsgolint/*"
+  - oxfmt
+  - "@oxfmt/*"
+  - vitest
+  - "@vitest/*"
+  - "@oxc-project/*"
