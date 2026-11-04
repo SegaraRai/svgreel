@@ -153,13 +153,36 @@ describe("CodeBlock helpers", () => {
     expect(drawn).not.toContain("keyword");
   });
 
-  it("puts the caret where the reveal has reached, despite float error", () => {
-    // The second line starts at 12 + 18 * 0.2 + 2 = 17.6000…01, so at frame 18 the reveal has
-    // reached 2 characters but (18 - start) / 0.2 is 1.999…: the caret must still count 2.
+  describe("caret", () => {
+    // Line 0 types over frames 12–15.6 and pauses until line 1 starts at 17.6 (18 × 0.2 + 2).
     const lines = ["abcdefghijklmnopqr", "abcdefghij"];
-    const block = <CodeBlock lines={lines} width={400} font={ts} theme={theme} start={12} speed={0.2} />;
-    const caret = styleOf(all(render(block, { frame: 18 }), "rect").at(-1)!).transform;
-    expect(caret?.startsWith(`translate(${round(22 + measureText("ab", ts))}px,`)).toBe(true);
+    const carets = (frame: number) =>
+      all(
+        render(<CodeBlock lines={lines} width={400} font={ts} theme={theme} start={12} speed={0.2} />, { frame }),
+        "rect",
+      )
+        .filter((r) => r.attribs.width === "2")
+        .map((r) => ({ opacity: styleOf(r).opacity, transform: styleOf(r).transform }));
+    const at = (w: number) => `translateX(${round(w)}px)`;
+
+    it("moves with the reveal while a line types", () => {
+      // Frame 14: 2 of 3.6 frames, the same fraction the cover has slid.
+      expect(carets(14)[0]).toEqual({ opacity: "1", transform: at((2 / 3.6) * measureText(lines[0], ts)) });
+      expect(carets(14)[1].opacity).toBe("0");
+    });
+
+    it("rests at the end of the line until the next line starts", () => {
+      expect(carets(16)[0]).toEqual({ opacity: "1", transform: at(measureText(lines[0], ts)) });
+      expect(carets(17)[0].opacity).toBe("1");
+      expect(carets(17)[1].opacity).toBe("0");
+      expect(carets(18).map((c) => c.opacity)).toEqual(["0", "1"]);
+      expect(carets(18)[1].transform).toBe(at((0.4 / 2) * measureText(lines[1], ts)));
+    });
+
+    it("blinks on the last line once everything is typed", () => {
+      expect(new Set([100, 108].map((f) => carets(f)[1].opacity))).toEqual(new Set(["0", "1"]));
+      expect(carets(100)[0].opacity).toBe("0");
+    });
   });
 
   it("adds the header bar only with a file or language", () => {

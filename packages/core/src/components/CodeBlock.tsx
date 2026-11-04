@@ -1,4 +1,4 @@
-import { blink, round, tween, typedChars } from "../animation/helpers.js";
+import { blink, round, tween } from "../animation/helpers.js";
 import type { TextStyle } from "../fonts.js";
 import { useCurrentFrame } from "../timeline.js";
 import { measureText, Text } from "./Text.js";
@@ -160,11 +160,22 @@ export function CodeBlock({
     t += Math.max([...l].length, 1) * speed + linePause;
     return { start: s, end: s + [...l].length * speed };
   });
-  const active = timing.findIndex((tm) => frame < tm.end);
-  const caretLine = active === -1 ? lines.length - 1 : active;
-  const caretChars =
-    active === -1 ? [...lines[caretLine]].length : Math.max(0, typedChars(frame - timing[caretLine].start, speed));
-  const caretX = padding + measureText([...lines[caretLine]].slice(0, caretChars).join(""), font);
+  const reveal = (k: number) =>
+    tween(frame, [timing[k].start, Math.max(timing[k].end, timing[k].start + 1)], [0, 1], (v) => v);
+  /**
+   * Each line has its own caret, moving with the line's cover so it sits exactly where the reveal
+   * has reached. It shows from the line's start (the first line's a little earlier) until the
+   * next line starts, so it rests at the end of the line during the pause, and the last one
+   * blinks once everything is typed. One caret per line, instead of one jumping between lines,
+   * because CSS would slide a single caret diagonally across the frame between two lines.
+   */
+  const caretOpacity = (k: number) => {
+    const from = k === 0 ? start - 6 : timing[k].start;
+    if (frame < from || (k + 1 < lines.length && frame >= timing[k + 1].start)) {
+      return 0;
+    }
+    return k === lines.length - 1 && frame >= timing[k].end ? blink(frame) : 1;
+  };
   const fileW = file
     ? measureText(file, {
         ...font,
@@ -209,7 +220,7 @@ export function CodeBlock({
         {lines.map((line, k) => {
           const ly = firstBaseline + k * lineHeight;
           const lineW = measureText(line, font);
-          const prog = tween(frame, [timing[k].start, Math.max(timing[k].end, timing[k].start + 1)], [0, 1], (v) => v);
+          const prog = reveal(k);
           let prefix = "";
           return (
             <g key={k}>
@@ -241,17 +252,21 @@ export function CodeBlock({
           );
         })}
       </svg>
-      {caret && (
-        <rect
-          width={2}
-          height={round(font.size * 1.2)}
-          fill={theme.accent}
-          style={{
-            opacity: frame >= start - 6 && (active !== -1 || blink(frame) === 1) ? 1 : 0,
-            transform: `translate(${round(caretX)}px, ${round(firstBaseline - font.size * 0.95 + caretLine * lineHeight)}px)`,
-          }}
-        />
-      )}
+      {caret &&
+        lines.map((line, k) => (
+          <rect
+            key={k}
+            x={padding}
+            y={round(firstBaseline - font.size * 0.95 + k * lineHeight)}
+            width={2}
+            height={round(font.size * 1.2)}
+            fill={theme.accent}
+            style={{
+              opacity: caretOpacity(k),
+              transform: `translateX(${round(reveal(k) * measureText(line, font))}px)`,
+            }}
+          />
+        ))}
     </g>
   );
 }
