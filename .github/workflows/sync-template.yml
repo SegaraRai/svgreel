@@ -50,12 +50,19 @@ jobs:
         working-directory: main
         run: |
           version=$(node --print "require('./packages/core/package.json').version")
-          if npm view "svgreel@$version" version > /dev/null 2>&1; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::svgreel@$version is not on npm yet; skipping the template sync."
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          fi
+          # Asks the registry directly: npm refuses to run in this workspace (devEngines names pnpm).
+          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --retry 3 "https://registry.npmjs.org/svgreel/$version")
+          case "$status" in
+            200) echo "ok=true" >> "$GITHUB_OUTPUT" ;;
+            404)
+              echo "::notice::svgreel@$version is not on npm yet; skipping the template sync."
+              echo "ok=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::The npm registry returned HTTP $status for svgreel@$version."
+              exit 1
+              ;;
+          esac
       - if: steps.published.outputs.ok == 'true'
         uses: actions/checkout@v7.0.1
         with:
