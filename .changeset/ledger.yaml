@@ -1,0 +1,4 @@
+svgreel@0.1.0:
+  dir: packages/core
+  intents:
+    - great-stars-pay
