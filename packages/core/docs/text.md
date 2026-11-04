@@ -34,6 +34,7 @@ image proxy, which blocks external resources.
 
 ## Checking quality
 
-`examples/demo-text` shows a size ladder, mixed scripts, wrapping and `palt`. To check a font
-choice in a project, copy it into `compositions/` and build it. In this repository, run
+`examples/typography` shows a size ladder, mixed scripts, wrapping and `palt`. To check a font
+choice in a project, copy it into `compositions/` (with `examples/_shared/`, which it imports)
+and build it. In this repository, run
 `pnpm examples`. Look at it at 1 column in the preview, at 100 % zoom.

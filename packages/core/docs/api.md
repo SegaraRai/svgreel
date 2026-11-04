@@ -7,8 +7,10 @@ import { defineComposition, Text, spring, useCurrentFrame } from "svgreel";
 ```
 
 The working examples are the best reference. They ship with the package, so in a project they
-are at `node_modules/svgreel/examples/`: `demo-components` has one cell per component, and
-`demo-text` covers text. The template's `compositions/profile` is a complete banner.
+are at `node_modules/svgreel/examples/`: `components` has one card per component, `animation`
+covers scenes, loops and motion helpers, and `typography` covers text. These three share their
+header and cards from `_shared/showcase.tsx`; copy it along with them. The template's
+`compositions/profile` is a complete banner.
 
 ## Composition
 

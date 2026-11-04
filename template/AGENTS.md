@@ -92,8 +92,9 @@ To get engine fixes and new components later: `pnpm up svgreel`, then rebuild an
 ## 4. Build and show
 
 1. Create `compositions/<name>/index.tsx`, or adapt `compositions/profile`. More examples ship
-   with the package in `node_modules/svgreel/examples/` (one cell per component, and text
-   features). Copy from them freely.
+   with the package in `node_modules/svgreel/examples/` (`components`, `animation`,
+   `typography`, `beat-sync`). Copy from them freely; the first three import their frame from
+   `_shared/showcase.tsx`.
 2. Run `pnpm build <name>`. It prints the output files and the preview path.
 3. Tell the user to open **`dist/index.html`** in their browser: give the full file path.
    It's a plain file, so no server or port is needed, and it reloads the data by itself after

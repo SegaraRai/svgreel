@@ -10,7 +10,7 @@ import type { AstroIntegration } from "astro";
  * Examples shown in the embedded preview at /examples/. `promo` is left out: it has ten
  * languages × two themes and weighs about 8 MB.
  */
-export const EXAMPLES = ["demo-motion", "demo-text", "demo-components", "beat-sync", "logo"];
+export const EXAMPLES = ["animation", "components", "typography", "beat-sync", "logo"];
 
 /** The four README logos, served at fixed URLs that svgreel-template's README links to. */
 const BRAND_FILES = ["logo-light.svg", "logo-dark.svg", "logo-light.still.svg", "logo-dark.still.svg"];
