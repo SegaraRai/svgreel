@@ -2,3 +2,17 @@ svgreel@0.1.0:
   dir: packages/core
   intents:
     - great-stars-pay
+svgreel@0.2.0:
+  dir: packages/core
+  intents:
+    - brave-knobs-tune
+    - bright-reels-roll
+    - calm-windows-dress
+    - fast-reels-build
+    - kind-reels-sign
+    - live-knobs-play
+    - loud-beats-sync
+    - nice-mice-act
+    - quiet-reels-rest
+    - swift-loaders-swap
+    - tidy-examples-show
