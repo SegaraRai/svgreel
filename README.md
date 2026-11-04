@@ -12,13 +12,13 @@
   GitHub README. This repository holds the package and everything around it.
 </p>
 
-<!-- The promo is packages/core/examples/promo, in English or Japanese by the viewer's language (apps/localize). -->
+<!-- The promo is packages/core/examples/promo, in the viewer's language (apps/localize; languages in content.ts LANGS). -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.svg?langs=en%2Cja">
-  <source media="(not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.svg?langs=en%2Cja">
-  <source media="(prefers-color-scheme: dark)" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.still.svg?langs=en%2Cja">
-  <img src="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.still.svg?langs=en%2Cja" alt="svgreel promo: write a React component where SVG = f(time), compile its frames into CSS keyframes, and get a self-contained animated SVG with outlined text, components, dark/light and language variants, and beat sync." width="100%">
+  <source media="(prefers-color-scheme: dark) and (not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.svg?langs=en%2Cja%2Czh-CN%2Czh-TW%2Cko%2Ces%2Cpt%2Cfr%2Cde%2Cru">
+  <source media="(not (prefers-reduced-motion: reduce))" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.svg?langs=en%2Cja%2Czh-CN%2Czh-TW%2Cko%2Ces%2Cpt%2Cfr%2Cde%2Cru">
+  <source media="(prefers-color-scheme: dark)" srcset="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-dark-%7Blang%7D.still.svg?langs=en%2Cja%2Czh-CN%2Czh-TW%2Cko%2Ces%2Cpt%2Cfr%2Cde%2Cru">
+  <img src="https://svgreel-localize.roundtrip.dev/github/SegaraRai/svgreel/assets/promo-light-%7Blang%7D.still.svg?langs=en%2Cja%2Czh-CN%2Czh-TW%2Cko%2Ces%2Cpt%2Cfr%2Cde%2Cru" alt="svgreel promo: write a React component where SVG = f(time), compile its frames into CSS keyframes, and get a self-contained animated SVG with outlined text, components, dark/light and language variants, and beat sync." width="100%">
 </picture>
 </p>
 

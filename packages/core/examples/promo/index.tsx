@@ -1,7 +1,8 @@
 // svgreel's own promo: intro → write (React code) → compile (frames → CSS keyframes) → features →
-// outro (terminal + logo), 20 s looping, in dark and light, English and Japanese.
+// outro (terminal + logo), 20 s looping, in dark and light, in the languages of content.ts (LANGS).
 // Decided: 1200 × 600 README header, 5 scenes of 4 s, logo orange (#F7931E) as the accent,
-// Figtree + JetBrains Mono (+ Noto Sans JP). Text lives in content.ts.
+// Figtree + JetBrains Mono, plus a Noto font or Inter per language for its script (SCRIPT_FONTS).
+// Text lives in content.ts; lines that vary in length shrink to fit (fit()).
 // The still file shows an overview: logo, tagline and the four feature cards.
 
 import { createContext, useContext, type ReactNode } from "react";
@@ -36,9 +37,10 @@ import {
   Wipe,
   type CharInfo,
   type CodeTheme,
+  type TextStyle,
 } from "svgreel";
 
-import { code, copy, css, formula, repo, terminal, type Copy, type Feature } from "./content.js";
+import { code, copy, css, formula, LANGS, repo, terminal, type Copy, type Feature, type Lang } from "./content.js";
 
 const W = 1200;
 const H = 600;
@@ -121,12 +123,41 @@ const THEMES = {
   },
 } satisfies Record<string, Theme>;
 
-const variants = defineVariants({ theme: ["dark", "light"], lang: ["en", "ja"] });
+const variants = defineVariants({ theme: ["dark", "light"], lang: LANGS });
+
+/**
+ * Families tried after Figtree / JetBrains Mono for each language's own script. Han characters
+ * look different in Japanese, Simplified and Traditional Chinese, so each gets its own Noto font
+ * ahead of the global fallback (Noto Sans JP). Figtree has no Cyrillic: Russian uses Inter.
+ */
+const SCRIPT_FONTS: Record<Lang, string[]> = {
+  en: [],
+  ja: ["Noto Sans JP"],
+  "zh-CN": ["Noto Sans SC"],
+  "zh-TW": ["Noto Sans TC"],
+  ko: ["Noto Sans KR"],
+  es: [],
+  pt: [],
+  fr: [],
+  de: [],
+  ru: ["Inter"],
+};
+
+interface Fonts {
+  sans: string[];
+  mono: string[];
+}
 
 const ThemeContext = createContext<Theme>(THEMES.dark);
 const useTheme = () => useContext(ThemeContext);
 const CopyContext = createContext<Copy>(copy.en);
 const useCopy = () => useContext(CopyContext);
+const FontContext = createContext<Fonts>({ sans: [SANS], mono: [MONO] });
+/** Families for translated text in the current language. */
+const useFonts = () => useContext(FontContext);
+
+/** `size`, or less if `text` would be wider than `max`: translations vary a lot in length. */
+const fit = (text: string, style: TextStyle, max: number) => Math.min(style.size, fitFontSize(text, style, max));
 
 const io = Easing.inOut(Easing.cubic);
 
@@ -278,15 +309,31 @@ function StepLabel({ n, label, y }: { n: number; label: string; y: number }) {
   );
 }
 
-function Heading({ y, size, children, delay = 6 }: { y: number; size: number; children: string; delay?: number }) {
+function Heading({
+  y,
+  size: maxSize,
+  maxWidth = W - 160,
+  children,
+  delay = 6,
+}: {
+  y: number;
+  size: number;
+  maxWidth?: number;
+  children: string;
+  delay?: number;
+}) {
   const C = useTheme();
+  const F = useFonts();
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const size = round(
+    fit(children, { family: F.sans, weight: 800, size: maxSize, letterSpacing: -maxSize / 40 }, maxWidth),
+  );
   return (
     <Text
       x={80}
       y={y}
-      family={SANS}
+      family={F.sans}
       weight={800}
       size={size}
       letterSpacing={round(-size / 40)}
@@ -303,19 +350,21 @@ function Heading({ y, size, children, delay = 6 }: { y: number; size: number; ch
 
 function Intro() {
   const C = useTheme();
+  const F = useFonts();
   const t = useCopy();
   const scale = 1.15;
-  const taglineSize = Math.min(36, fitFontSize(t.tagline, { family: SANS, weight: 700, size: 36 }, 900));
+  const taglineSize = round(fit(t.tagline, { family: F.sans, weight: 700, size: 36 }, 900));
+  const sublineSize = round(fit(t.subline, { family: F.sans, weight: 500, size: 24 }, 900));
   return (
     <g style={useExit(0, -40)}>
       <Logo x={round((W - LOGO_W * scale) / 2)} y={140} scale={scale} delay={4} />
       <Appear at={40} distance={24}>
-        <Text x={W / 2} y={420} anchor="middle" family={SANS} weight={700} size={taglineSize} fill={C.text}>
+        <Text x={W / 2} y={420} anchor="middle" family={F.sans} weight={700} size={taglineSize} fill={C.text}>
           {t.tagline}
         </Text>
       </Appear>
       <Appear at={52} distance={18}>
-        <Text x={W / 2} y={468} anchor="middle" family={SANS} weight={500} size={24} fill={C.muted}>
+        <Text x={W / 2} y={468} anchor="middle" family={F.sans} weight={500} size={sublineSize} fill={C.muted}>
           {t.subline}
         </Text>
       </Appear>
@@ -402,21 +451,24 @@ function Formula({ x, y }: { x: number; y: number }) {
 
 function Write() {
   const C = useTheme();
+  const F = useFonts();
   const t = useCopy();
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const card = spring({ frame: f - 6, fps, config: { damping: 14 } });
   const hello = HELLO_FROM;
   const glow = pulse(f, hello, 4, 24);
+  // The left column ends where the code block starts (x = 540).
+  const subSize = round(fit(t.write.sub, { family: F.sans, weight: 500, size: 20 }, 430));
   return (
     <g style={useExit(-60, 0)}>
       <StepLabel n={1} label="WRITE" y={120} />
-      <Heading y={176} size={52}>
+      <Heading y={176} size={52} maxWidth={430}>
         {t.write.title}
       </Heading>
       <Formula x={80} y={236} />
       <Appear at={30} distance={14}>
-        <Text x={80} y={276} family={SANS} weight={500} size={20} fill={C.muted}>
+        <Text x={80} y={276} family={F.sans} weight={500} size={subSize} fill={C.muted}>
           {t.write.sub}
         </Text>
       </Appear>
@@ -434,7 +486,7 @@ function Write() {
           strokeWidth={2}
           style={{ opacity: round(glow) }}
         />
-        <Text x={100} y={332} family={MONO} size={14} fill={C.muted}>
+        <Text x={100} y={332} family={F.mono} size={14} fill={C.muted}>
           {t.write.preview}
         </Text>
         <Sequence from={hello} durationInFrames={SCENE - hello}>
@@ -549,7 +601,13 @@ function FilmStrip() {
 
 function Compile() {
   const C = useTheme();
+  const F = useFonts();
   const t = useCopy();
+  const subSize = round(fit(t.compile.sub, { family: F.sans, weight: 500, size: 20 }, W - 160));
+  // Points run from x = 776 to the right margin; one size for all three keeps them even.
+  const pointSize = round(
+    Math.min(...t.compile.points.map((p) => fit(p, { family: F.sans, weight: 700, size: 24 }, W - 80 - 776))),
+  );
   return (
     <g style={useExit(0, -30)}>
       <StepLabel n={2} label="COMPILE" y={82} />
@@ -557,7 +615,7 @@ function Compile() {
         {t.compile.title}
       </Heading>
       <Appear at={12} distance={14}>
-        <Text x={80} y={174} family={SANS} weight={500} size={20} fill={C.muted}>
+        <Text x={80} y={174} family={F.sans} weight={500} size={subSize} fill={C.muted}>
           {t.compile.sub}
         </Text>
       </Appear>
@@ -580,7 +638,7 @@ function Compile() {
       {t.compile.points.map((p, i) => (
         <Appear key={p} at={74 + i * 7} preset="left" distance={30}>
           <circle cx={756} cy={390 + i * 56} r={6} fill={ORANGE} />
-          <Text x={776} y={390 + i * 56} baseline="middle" family={SANS} weight={700} size={24} fill={C.text}>
+          <Text x={776} y={390 + i * 56} baseline="middle" family={F.sans} weight={700} size={pointSize} fill={C.text}>
             {p}
           </Text>
         </Appear>
@@ -604,6 +662,8 @@ const PILL_GAP = 8;
 /** The little live demo at the top of each feature card, centred on (0, 0). */
 function FeatureDemo({ index, delay }: { index: number; delay: number }) {
   const C = useTheme();
+  const F = useFonts();
+  const t = useCopy();
   const f = Math.min(useCurrentFrame(), SCENE);
   const { fps } = useVideoConfig();
   if (index === 0) {
@@ -611,13 +671,13 @@ function FeatureDemo({ index, delay }: { index: number; delay: number }) {
       <Text
         anchor="middle"
         baseline="middle"
-        family={SANS}
+        family={F.sans}
         weight={800}
         size={60}
         fill={C.text}
         charStyle={charAnimations.wave({ frame: f, from: delay + 10, period: 30, amplitude: 6 })}
       >
-        Aa あ
+        {t.sample}
       </Text>
     );
   }
@@ -712,6 +772,8 @@ function FeatureDemo({ index, delay }: { index: number; delay: number }) {
 
 function FeatureCard({ item, index, x, y, at }: { item: Feature; index: number; x: number; y: number; at: number }) {
   const C = useTheme();
+  const F = useFonts();
+  const titleSize = round(fit(item.title, { family: F.sans, weight: 800, size: 22 }, CARD_W - 40));
   return (
     <g transform={`translate(${x} ${y})`}>
       <Appear at={at} distance={30}>
@@ -720,10 +782,19 @@ function FeatureCard({ item, index, x, y, at }: { item: Feature; index: number; 
           <FeatureDemo index={index} delay={at} />
         </g>
         <line x1={20} y1={172} x2={CARD_W - 20} y2={172} stroke={C.border} />
-        <Text x={20} y={208} family={SANS} weight={800} size={22} fill={C.text}>
+        <Text x={20} y={208} family={F.sans} weight={800} size={titleSize} fill={C.text}>
           {item.title}
         </Text>
-        <Text x={20} y={240} family={SANS} weight={500} size={18} lineHeight={25} maxWidth={CARD_W - 36} fill={C.muted}>
+        <Text
+          x={20}
+          y={240}
+          family={F.sans}
+          weight={500}
+          size={18}
+          lineHeight={25}
+          maxWidth={CARD_W - 36}
+          fill={C.muted}
+        >
           {item.description}
         </Text>
       </Appear>
@@ -760,12 +831,17 @@ function Features() {
 
 function Outro() {
   const C = useTheme();
+  const F = useFonts();
   const t = useCopy();
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const term = spring({ frame: f - 4, fps, config: { damping: 15 } });
   const logoScale = 0.72;
   const cx = 905;
+  // The right column: from the terminal's right edge (620) plus a gap to the frame's margin.
+  const colW = 2 * (W - 40 - cx);
+  const titleSize = round(fit(t.outro.title, { family: F.sans, weight: 800, size: 44, letterSpacing: -1 }, colW));
+  const subSize = round(fit(t.outro.sub, { family: F.sans, weight: 500, size: 19 }, colW));
   return (
     <g style={useExit(0, 0)}>
       <g style={{ opacity: round(Math.min(1, term * 2)), transform: `translateY(${round((1 - term) * 40)}px)` }}>
@@ -792,7 +868,16 @@ function Outro() {
       </g>
       <Logo x={round(cx - (LOGO_W * logoScale) / 2)} y={150} scale={logoScale} delay={30} />
       <Appear at={56} distance={20}>
-        <Text x={cx} y={350} anchor="middle" family={SANS} weight={800} size={44} letterSpacing={-1} fill={C.text}>
+        <Text
+          x={cx}
+          y={350}
+          anchor="middle"
+          family={F.sans}
+          weight={800}
+          size={titleSize}
+          letterSpacing={-1}
+          fill={C.text}
+        >
           {t.outro.title}
         </Text>
       </Appear>
@@ -800,7 +885,7 @@ function Outro() {
         <Text x={cx} y={398} anchor="middle" family={MONO} weight={700} size={20} fill={C.accentText}>
           {repo}
         </Text>
-        <Text x={cx} y={436} anchor="middle" family={SANS} weight={500} size={19} fill={C.muted}>
+        <Text x={cx} y={436} anchor="middle" family={F.sans} weight={500} size={subSize} fill={C.muted}>
           {t.outro.sub}
         </Text>
       </Appear>
@@ -859,7 +944,10 @@ function Promo() {
 /** Static overview for the still file: logo, tagline, the four features and the repository. */
 function Overview() {
   const C = useTheme();
+  const F = useFonts();
   const t = useCopy();
+  const taglineSize = round(fit(t.tagline, { family: F.sans, weight: 800, size: 32, letterSpacing: -0.5 }, W - 160));
+  const sublineSize = round(fit(t.subline, { family: F.sans, weight: 500, size: 21 }, W - 160));
   return (
     <Frame>
       <Background />
@@ -867,10 +955,10 @@ function Overview() {
       <Text x={W - 80} y={100} anchor="end" family={MONO} weight={700} size={18} fill={C.accentText}>
         {repo}
       </Text>
-      <Text x={80} y={212} family={SANS} weight={800} size={32} letterSpacing={-0.5} fill={C.text}>
+      <Text x={80} y={212} family={F.sans} weight={800} size={taglineSize} letterSpacing={-0.5} fill={C.text}>
         {t.tagline}
       </Text>
-      <Text x={80} y={250} family={SANS} weight={500} size={21} fill={C.muted}>
+      <Text x={80} y={250} family={F.sans} weight={500} size={sublineSize} fill={C.muted}>
         {t.subline}
       </Text>
       <FeatureCards y={286} />
@@ -880,9 +968,12 @@ function Overview() {
 
 function Root() {
   const { theme, lang, motion } = useVariant<typeof variants>();
+  const script = SCRIPT_FONTS[lang];
   return (
     <ThemeContext.Provider value={THEMES[theme]}>
-      <CopyContext.Provider value={copy[lang]}>{motion === "still" ? <Overview /> : <Promo />}</CopyContext.Provider>
+      <FontContext.Provider value={{ sans: [SANS, ...script], mono: [MONO, ...script] }}>
+        <CopyContext.Provider value={copy[lang]}>{motion === "still" ? <Overview /> : <Promo />}</CopyContext.Provider>
+      </FontContext.Provider>
     </ThemeContext.Provider>
   );
 }
@@ -898,13 +989,18 @@ export default defineComposition({
   fonts: [
     ...fontsource("figtree", { family: SANS, weights: [500, 700, 800] }),
     ...fontsource("figtree", { family: WORDMARK, weights: [600], italic: true }),
-    ...fontsource("jetbrains-mono", { family: MONO, weights: [400, 700] }),
+    ...fontsource("jetbrains-mono", { family: MONO, weights: [400, 700], subsets: ["latin", "cyrillic"] }),
     ...fontsource("noto-sans-jp", {
       family: "Noto Sans JP",
       weights: [500, 700],
       subsets: ["japanese"],
       fallback: true,
     }),
+    // Script fonts picked per language (SCRIPT_FONTS), not fallbacks.
+    ...fontsource("noto-sans-sc", { family: "Noto Sans SC", weights: [500, 700], subsets: ["chinese-simplified"] }),
+    ...fontsource("noto-sans-tc", { family: "Noto Sans TC", weights: [500, 700], subsets: ["chinese-traditional"] }),
+    ...fontsource("noto-sans-kr", { family: "Noto Sans KR", weights: [500, 700], subsets: ["korean"] }),
+    ...fontsource("inter", { family: "Inter", weights: [500, 700, 800], subsets: ["cyrillic"] }),
   ],
   title: "svgreel: motion graphics as React components, compiled to self-contained animated SVG",
 });
