@@ -130,7 +130,7 @@ preview when the change is visible.
   last production deployment, so `stable` must deploy once before the first Preview.
 - `integrations/examples.ts` runs before every build and when `astro dev` starts. It writes two
   gitignored folders into `public/`:
-  - `examples/`: `svgreel build` of the examples listed in `EXAMPLES` (all but `promo`, which is
+  - `examples/`: `svgreel build --no-refresh` of the examples listed in `EXAMPLES` (all but `promo`, which is
     about 8 MB), with the preview page, embedded in the page through an `<iframe>`. Like
     `vp run examples`, it runs the CLI and the examples from source, but it needs svgreel's
     `dist/preview`: build svgreel first.

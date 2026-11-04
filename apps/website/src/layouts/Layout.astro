@@ -20,6 +20,8 @@ const { title, description = DESCRIPTION } = Astro.props;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={Astro.url.href} />
     <link rel="canonical" href={Astro.url.href} />
+    <!-- The reel from the logo (packages/core/examples/logo), at rest. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
     <slot />

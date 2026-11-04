@@ -7,6 +7,7 @@
  *   svgreel build --watch [names] # rebuild on change; serves the preview on localhost, where
  *                                 # its param controls re-render the SVGs live
  *   svgreel build --param accent=#f00   # override a param default
+ *   svgreel build --no-refresh    # a preview page that doesn't check for new builds (to publish it)
  *
  * Output: dist/<name>/<name>[-<value>...].svg (+ .still.svg), dist/index.html (preview).
  */
@@ -44,17 +45,21 @@ Options:
   --dir <dir>    Folder with compositions (default: compositions)
   --out <dir>    Output folder (default: dist)
   --param <k=v>  Override a param default in every composition that declares it (repeatable)
+  --no-refresh   Write a preview page that doesn't check for new builds, for publishing it
+                 on a website (by default it reloads preview-data.js every second)
   -h, --help     Show this help
 `;
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
+  allowNegative: true,
   options: {
     watch: { type: "boolean", default: false },
     dir: { type: "string", default: "compositions" },
     out: { type: "string", default: "dist" },
     param: { type: "string", multiple: true, default: [] },
     port: { type: "string", default: "5331" },
+    refresh: { type: "boolean", default: true },
     /** Internal: the live render process that --watch starts. */
     worker: { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
@@ -65,6 +70,11 @@ const [command, ...names] = positionals;
 if (values.help || command !== "build") {
   process.stdout.write(HELP);
   process.exit(values.help ? 0 : 1);
+}
+
+if (values.watch && !values.refresh) {
+  console.error("--no-refresh can't be combined with --watch, which relies on the preview refreshing.");
+  process.exit(1);
 }
 
 /** `--param key=value`, as given (parsed per composition, by the param's kind). */
@@ -270,6 +280,8 @@ function writePreviewData() {
     });
   const data = {
     buildId: `${Date.now()}`,
+    // --no-refresh: the page won't look for newer builds (or for the --watch server).
+    ...(values.refresh ? {} : { refresh: false }),
     compositions: comps,
   };
   // A classic script (not JSON + fetch), so the page also works when opened from file://.

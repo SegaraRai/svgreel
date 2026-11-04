@@ -9,7 +9,8 @@ import type { CompositionData, Output } from "./types";
 export function useLiveServer(): boolean {
   const [live, setLive] = useState(false);
   useEffect(() => {
-    if (!location.protocol.startsWith("http")) {
+    // --no-refresh builds are published pages, never served by --watch.
+    if (!location.protocol.startsWith("http") || window.__SVGREEL__?.refresh === false) {
       return;
     }
     fetch("/_svgreel/live")

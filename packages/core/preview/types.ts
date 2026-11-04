@@ -45,6 +45,8 @@ export interface CompositionData {
 
 export interface PreviewData {
   buildId: string;
+  /** False when built with --no-refresh: a published page that never sees a newer build. */
+  refresh?: false;
   compositions: CompositionData[];
 }
 

@@ -45,7 +45,7 @@ export function svgreelAssets(): AstroIntegration {
     // From packages/core, so the examples compile with its tsconfig and resolve its fonts.
     const result = spawnSync(
       process.execPath,
-      ["--import", tsx, "src/cli/main.ts", "build", ...EXAMPLES, "--dir", "examples", "--out", out],
+      ["--import", tsx, "src/cli/main.ts", "build", ...EXAMPLES, "--dir", "examples", "--out", out, "--no-refresh"],
       { cwd: core, stdio: "inherit" },
     );
     if (result.status !== 0) {

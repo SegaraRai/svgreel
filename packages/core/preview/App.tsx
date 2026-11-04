@@ -32,10 +32,16 @@ function usePref<T extends string | number>(key: string, initial: T) {
   return [v, set] as const;
 }
 
-/** Re-loads preview-data.js every second and swaps in a newer build (works from file:// too). */
+/**
+ * Re-loads preview-data.js every second and swaps in a newer build (works from file:// too), unless
+ * the build was made with --no-refresh.
+ */
 function useLiveData(): PreviewData | undefined {
   const [data, setData] = useState(window.__SVGREEL__);
   useEffect(() => {
+    if (data?.refresh === false) {
+      return;
+    }
     const id = setInterval(() => {
       const s = document.createElement("script");
       s.src = `preview-data.js?t=${Date.now()}`;
@@ -49,7 +55,7 @@ function useLiveData(): PreviewData | undefined {
       document.head.appendChild(s);
     }, 1000);
     return () => clearInterval(id);
-  }, [data?.buildId]);
+  }, [data?.buildId, data?.refresh]);
   return data;
 }
 
