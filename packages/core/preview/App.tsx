@@ -355,6 +355,24 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/** A transport icon; the button around it carries the label. */
+function Icon({ name }: { name: "play" | "pause" | "skip-back" | "skip-forward" }) {
+  return (
+    <span
+      aria-hidden
+      {...style(
+        "icon-line",
+        {
+          play: "icon-lucide--play",
+          pause: "icon-lucide--pause",
+          "skip-back": "icon-lucide--skip-back",
+          "skip-forward": "icon-lucide--skip-forward",
+        }[name],
+      )}
+    />
+  );
+}
+
 const SPEEDS = [0.1, 0.25, 0.5, 1, 2];
 
 function Transport({ comp }: { comp: CompositionData }) {
@@ -423,23 +441,26 @@ function Transport({ comp }: { comp: CompositionData }) {
         <button
           {...style(control)}
           title="Previous frame (←, Shift+← = 10)"
+          aria-label="Previous frame"
           onClick={() => (clock.set({ playing: false }), clock.seek(frame - 1))}
         >
-          ◀︎
+          <Icon name="skip-back" />
         </button>
         <button
           {...style(control, "min-w-10.5")}
-          title="Play / pause (Space)"
+          title="Play / pause (Space, or click an SVG)"
+          aria-label={clock.playing ? "Pause" : "Play"}
           onClick={() => clock.set({ playing: !clock.playing })}
         >
-          {clock.playing ? "❚❚" : "▶︎"}
+          <Icon name={clock.playing ? "pause" : "play"} />
         </button>
         <button
           {...style(control)}
           title="Next frame (→, Shift+→ = 10)"
+          aria-label="Next frame"
           onClick={() => (clock.set({ playing: false }), clock.seek(frame + 1))}
         >
-          ▶︎
+          <Icon name="skip-forward" />
         </button>
       </div>
       <div {...style("relative min-w-30 flex-1 max-sm:mb-2 max-sm:-order-1 max-sm:basis-full")}>

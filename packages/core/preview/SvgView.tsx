@@ -20,5 +20,14 @@ export function SvgView({ svg, animated }: { svg: string; animated: boolean }) {
     }
     return clock.register(root.getAnimations());
   }, [svg, animated]);
-  return <div ref={host} {...style("p-4")} />;
+  // Clicking an animated SVG plays or pauses, like the transport's button.
+  return (
+    <div
+      ref={host}
+      data-animated={animated || undefined}
+      title={animated ? "Click to play / pause" : undefined}
+      {...style("p-4 data-animated:cursor-pointer")}
+      onClick={animated ? () => clock.set({ playing: !clock.playing }) : undefined}
+    />
+  );
 }
