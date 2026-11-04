@@ -17,50 +17,50 @@ export class Clock {
   fps = 30;
   duration = 1;
 
-  private views = new Set<Animation[]>();
-  private listeners = new Set<() => void>();
-  private last = 0;
-  private version = 0;
-  private track?: AudioTrack;
+  #views = new Set<Animation[]>();
+  #listeners = new Set<() => void>();
+  #last = 0;
+  #version = 0;
+  #track?: AudioTrack;
   /** Timeline seconds at which the audio file's 0 s plays. */
-  private offset = 0;
+  #offset = 0;
 
   constructor() {
     const tick = (now: number) => {
       if (this.playing) {
-        const heard = this.audible() ? this.track!.heardTime() : null;
+        const heard = this.#audible() ? this.#track!.heardTime() : null;
         let f: number;
         if (heard !== null) {
-          f = (heard + this.offset) * this.fps;
+          f = (heard + this.#offset) * this.fps;
           // Right after (re)starting, the sound is still in the output buffer: hold the picture
           // instead of stepping back.
           if (f < this.frame && this.frame - f < 0.3 * this.fps) {
             f = this.frame;
           }
         } else {
-          const dt = this.last ? now - this.last : 0;
+          const dt = this.#last ? now - this.#last : 0;
           f = this.frame + (dt / 1000) * this.fps * this.speed;
         }
         if (f >= this.duration) {
           if (this.loop) {
             f %= this.duration;
             this.frame = f;
-            this.restartAudio();
+            this.#restartAudio();
           } else {
             f = this.duration - 1;
             this.playing = false;
-            this.restartAudio();
+            this.#restartAudio();
           }
         }
         if (f < 0) {
           f = this.loop ? f + this.duration : 0;
         }
         this.frame = f;
-        this.followAudio();
-        this.apply();
-        this.emit();
+        this.#followAudio();
+        this.#apply();
+        this.#emit();
       }
-      this.last = now;
+      this.#last = now;
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -72,49 +72,49 @@ export class Clock {
     if (this.frame >= this.duration) {
       this.frame = 0;
     }
-    this.apply();
-    this.restartAudio();
-    this.emit();
+    this.#apply();
+    this.#restartAudio();
+    this.#emit();
   }
 
   /** Sets (or clears) the audio track. `url` is relative to the page. */
   setAudio(url: string | null, offset = 0) {
-    if (this.track && this.track.url === url && this.offset === offset) {
+    if (this.#track && this.#track.url === url && this.#offset === offset) {
       return;
     }
-    this.track?.dispose();
-    this.track = undefined;
-    this.offset = offset;
+    this.#track?.dispose();
+    this.#track = undefined;
+    this.#offset = offset;
     if (url) {
-      this.track = new AudioTrack(url, () => {
-        this.restartAudio();
-        this.emit();
+      this.#track = new AudioTrack(url, () => {
+        this.#restartAudio();
+        this.#emit();
       });
     }
-    this.emit();
+    this.#emit();
   }
 
   get hasAudio(): boolean {
-    return !!this.track;
+    return !!this.#track;
   }
 
   register(anims: Animation[]) {
     for (const a of anims) {
       a.pause();
     }
-    this.views.add(anims);
-    this.apply();
+    this.#views.add(anims);
+    this.#apply();
     return () => {
-      this.views.delete(anims);
+      this.#views.delete(anims);
     };
   }
 
   seek(frame: number) {
     const d = this.duration;
     this.frame = this.loop ? ((frame % d) + d) % d : Math.min(d - 1, Math.max(0, frame));
-    this.apply();
-    this.restartAudio();
-    this.emit();
+    this.#apply();
+    this.#restartAudio();
+    this.#emit();
   }
 
   set(patch: Partial<Pick<Clock, "playing" | "speed" | "loop" | "sound">>) {
@@ -123,42 +123,42 @@ export class Clock {
       this.frame = 0;
     }
     if ("playing" in patch || "speed" in patch || "sound" in patch) {
-      this.restartAudio();
+      this.#restartAudio();
     }
-    this.emit();
+    this.#emit();
   }
 
   /** Sound plays only at 1× (other speeds would change its pitch or drift). */
-  private audible(): boolean {
-    return !!this.track && this.sound && this.playing && this.speed === 1 && this.track.mode !== "loading";
+  #audible(): boolean {
+    return !!this.#track && this.sound && this.playing && this.speed === 1 && this.#track.mode !== "loading";
   }
 
-  private restartAudio() {
-    if (!this.track) {
+  #restartAudio() {
+    if (!this.#track) {
       return;
     }
-    if (this.audible()) {
-      this.track.start(this.frame / this.fps - this.offset);
+    if (this.#audible()) {
+      this.#track.start(this.frame / this.fps - this.#offset);
     } else {
-      this.track.stop();
+      this.#track.stop();
     }
   }
 
   /** <audio> fallback: nudge the element when it drifts from the clock. */
-  private followAudio() {
-    if (!this.audible() || this.track!.mode !== "element") {
+  #followAudio() {
+    if (!this.#audible() || this.#track!.mode !== "element") {
       return;
     }
-    const want = this.frame / this.fps - this.offset;
-    const at = this.track!.elementTime();
+    const want = this.frame / this.fps - this.#offset;
+    const at = this.#track!.elementTime();
     if (want >= 0 && (at === null || Math.abs(at - want) > 0.1)) {
-      this.track!.start(want);
+      this.#track!.start(want);
     }
   }
 
-  private apply() {
+  #apply() {
     const ms = (this.frame / this.fps) * 1000;
-    for (const anims of this.views) {
+    for (const anims of this.#views) {
       for (const a of anims) {
         a.currentTime = ms;
       }
@@ -167,13 +167,13 @@ export class Clock {
 
   // useSyncExternalStore plumbing
   subscribe = (fn: () => void) => {
-    this.listeners.add(fn);
-    return () => this.listeners.delete(fn);
+    this.#listeners.add(fn);
+    return () => this.#listeners.delete(fn);
   };
-  snapshot = () => this.version;
-  private emit() {
-    this.version++;
-    for (const fn of this.listeners) {
+  snapshot = () => this.#version;
+  #emit() {
+    this.#version++;
+    for (const fn of this.#listeners) {
       fn();
     }
   }

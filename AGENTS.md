@@ -77,6 +77,11 @@ preview when the change is visible.
 
 ## Rules
 
+### Code
+
+- Make class members private with `#` (ECMAScript private fields and methods), not TypeScript's
+  `private` modifier. Constructor parameter properties can't be `#`: declare the field and assign it.
+
 ### packages/core
 
 - **Public API = `src/index.ts`.** Anything exported there is used by people's compositions, so

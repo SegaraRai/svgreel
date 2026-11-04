@@ -310,23 +310,27 @@ interface PoolJob {
  * import and the font files.
  */
 class CompilePool {
-  private readonly workers: Worker[] = [];
-  private readonly idle: Worker[] = [];
-  private readonly queue: PoolJob[] = [];
-  private readonly running = new Map<Worker, PoolJob>();
-  private nextId = 0;
+  readonly #workers: Worker[] = [];
+  readonly #idle: Worker[] = [];
+  readonly #queue: PoolJob[] = [];
+  readonly #running = new Map<Worker, PoolJob>();
+  #nextId = 0;
 
-  constructor(private readonly size: number) {}
+  readonly #size: number;
+
+  constructor(size: number) {
+    this.#size = size;
+  }
 
   readonly compile: CompileVariant = (name, _comp, variant, overrides) =>
     new Promise<CompileResult>((resolve, reject) => {
       const task: CompileTask = {
-        id: this.nextId++,
+        id: this.#nextId++,
         url: pathToFileURL(path.join(COMPOSITIONS, name, "index.tsx")).href,
         variant,
         overrides,
       };
-      this.queue.push({
+      this.#queue.push({
         task,
         done: (reply) => {
           if ("res" in reply) {
@@ -339,33 +343,33 @@ class CompilePool {
           reject(e);
         },
       });
-      this.pump();
+      this.#pump();
     });
 
-  private pump() {
-    while (this.queue.length) {
-      const worker = this.idle.pop() ?? (this.workers.length < this.size ? this.spawn() : undefined);
+  #pump() {
+    while (this.#queue.length) {
+      const worker = this.#idle.pop() ?? (this.#workers.length < this.#size ? this.#spawn() : undefined);
       if (!worker) {
         return;
       }
-      const job = this.queue.shift()!;
-      this.running.set(worker, job);
+      const job = this.#queue.shift()!;
+      this.#running.set(worker, job);
       worker.postMessage(job.task);
     }
   }
 
-  private spawn(): Worker {
+  #spawn(): Worker {
     const loader = import.meta.resolve("@oxc-node/core/register");
     const entry = new URL(`./worker${EXT}`, import.meta.url).href;
     const worker = new Worker(`import(${JSON.stringify(loader)}).then(() => import(${JSON.stringify(entry)}))`, {
       eval: true,
     });
     worker.on("message", (reply: CompileReply) => {
-      const job = this.running.get(worker);
-      this.running.delete(worker);
-      this.idle.push(worker);
+      const job = this.#running.get(worker);
+      this.#running.delete(worker);
+      this.#idle.push(worker);
       job?.done(reply);
-      this.pump();
+      this.#pump();
     });
     let failed = false;
     const fail = (error: string) => {
@@ -373,26 +377,26 @@ class CompilePool {
         return;
       }
       failed = true;
-      const job = this.running.get(worker);
-      this.running.delete(worker);
-      for (const list of [this.workers, this.idle]) {
+      const job = this.#running.get(worker);
+      this.#running.delete(worker);
+      for (const list of [this.#workers, this.#idle]) {
         const i = list.indexOf(worker);
         if (i >= 0) {
           list.splice(i, 1);
         }
       }
       job?.done({ id: job.task.id, error });
-      this.pump();
+      this.#pump();
     };
     worker.on("error", (e: Error) => fail(e.stack ?? e.message));
     worker.on("exit", (code) => fail(`A compile worker exited (code ${code}).`));
-    this.workers.push(worker);
+    this.#workers.push(worker);
     return worker;
   }
 
   async close() {
-    const workers = this.workers.splice(0);
-    this.idle.length = 0;
+    const workers = this.#workers.splice(0);
+    this.#idle.length = 0;
     await Promise.all(workers.map((w) => w.terminate()));
   }
 }
