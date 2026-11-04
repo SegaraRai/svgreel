@@ -8,16 +8,20 @@
 #   "soundfile>=0.12",
 # ]
 # ///
-"""Beat analysis for svgreel compositions. Run with uv, which installs the dependencies:
+"""Beat analysis for svgreel compositions. Copy this file into your project (tools/beatmap.py)
+and run it with uv, which installs the dependencies:
 
-  uv run node_modules/svgreel/tools/beatmap.py analyze song.mp3 -o song.analysis.json --png song.png
-  uv run node_modules/svgreel/tools/beatmap.py export song.analysis.json -o beats.json
+  uv run tools/beatmap.py analyze song.mp3 -o song.analysis.json --png song.png
+  uv run tools/beatmap.py export song.analysis.json -o beats.json
       [--every N --bar M --phase P | --pattern "3+2,3+3" --phase P] [--from S --to S]
 
 `analyze` runs Beat This!, fits tempo segments (constant tempo, step changes, or free time),
 reports meter, downbeat phase, an accent cycle (for additive meters), rhythm confidence per
 window, sections and onsets, plus a suggested pulse level. `export` turns it into the BeatMap a
 composition imports. All times are seconds in the audio file.
+
+This file is yours: change it freely. svgreel ships the original in node_modules/svgreel/tools/;
+after updating svgreel, diff the two and take what you want (svgreel's docs/tools.md).
 """
 
 from __future__ import annotations

@@ -76,6 +76,7 @@ pnpm build        # builds every composition and the preview page
 | ----------------------- | ------------ | ------------------------------------------------------------------------------ |
 | `compositions/<name>/`  | the user     | One folder per SVG. Keep text and data in `content.ts`, layout in `index.tsx`. |
 | `fonts/`                | the user     | Font files that aren't on npm (brand fonts).                                   |
+| `tools/`                | the user     | Scripts copied from `node_modules/svgreel/tools/` when needed (docs/tools.md). |
 | `PROJECT.md`            | the user     | Decisions and context for the next session. Keep it current.                   |
 | `node_modules/svgreel/` | the package  | The engine, its docs and examples. **Never edit**; it's replaced on update.    |
 | `dist/`                 | build output | Recreated by `pnpm build`; git-ignored.                                        |
@@ -85,7 +86,8 @@ feature is missing, build it inside the composition (any React component works).
 generally useful, tell the user it could be suggested upstream at
 [svgreel](https://github.com/SegaraRai/svgreel).
 
-To get engine fixes and new components later: `pnpm up svgreel`, then rebuild and check.
+To get engine fixes and new components later: `pnpm up svgreel`, then rebuild and check. If
+`tools/` has copies of svgreel's tools, diff them against the new originals (docs/tools.md).
 
 ## 4. Build and show
 
@@ -136,6 +138,9 @@ The docs ship with the installed package, so they always match its version:
 - `node_modules/svgreel/docs/embedding.md`: publishing the result.
 - `node_modules/svgreel/docs/audio.md`: music or narration in the preview, and timing motion to
   the beat (only when the user brings audio).
+- `node_modules/svgreel/docs/tools.md`: optional scripts (video export, beat analysis). Copy the
+  ones you need into `tools/` and adapt them; after updating svgreel, diff them against the
+  originals.
 
 Guidelines:
 

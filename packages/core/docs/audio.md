@@ -36,14 +36,15 @@ Use `--watch` to judge sync.
 
 ## Analyzing music
 
-`tools/beatmap.py` finds beats, bars, tempo changes, sections and attacks, using the
-[Beat This!](https://github.com/CPJKU/beat_this) model. It is a single Python file. Run it with
-[uv](https://docs.astral.sh/uv/), which installs its dependencies (PyTorch, librosa) on the first
-run. A CUDA GPU is used when PyTorch finds one; on CPU a 3-minute song takes about 30 s.
+`beatmap.py` finds beats, bars, tempo changes, sections and attacks, using the
+[Beat This!](https://github.com/CPJKU/beat_this) model. It is a single Python file shipped in
+`node_modules/svgreel/tools/`: copy it into the project's `tools/` first (see [tools.md](tools.md)).
+Run it with [uv](https://docs.astral.sh/uv/), which installs its dependencies (PyTorch, librosa)
+on the first run. A CUDA GPU is used when PyTorch finds one; on CPU a 3-minute song takes about 30 s.
 
 ```sh
-uv run node_modules/svgreel/tools/beatmap.py analyze music.mp3 -o music.analysis.json --png music.png
-uv run node_modules/svgreel/tools/beatmap.py export music.analysis.json -o compositions/banner/beats.json
+uv run tools/beatmap.py analyze music.mp3 -o music.analysis.json --png music.png
+uv run tools/beatmap.py export music.analysis.json -o compositions/banner/beats.json
 ```
 
 `analyze` prints a summary and draws `music.png`. `export` writes the beat map the composition
@@ -197,6 +198,11 @@ files about 50 % larger.
 Seek the compiled SVG's animations to a beat's frame and the frame before it (in a browser,
 `svg.getAnimations()` and `currentTime`). The hit must start on the beat's frame. Then play it in
 the `--watch` preview with sound on, and ask the user to listen.
+
+## Sharing the result
+
+The SVG is silent. For a video with the sound (social media, a demo), render one with
+`render-video.mjs` ([tools.md](tools.md)).
 
 ## Beat map format
 

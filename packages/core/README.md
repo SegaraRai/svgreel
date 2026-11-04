@@ -88,6 +88,7 @@ installed version:
 - [text.md](docs/text.md): how text is rendered, and its limits
 - [embedding.md](docs/embedding.md): using the output in a README or elsewhere
 - [audio.md](docs/audio.md): a sound track in the preview, and timing motion to music
+- [tools.md](docs/tools.md): optional scripts to copy into a project (video export, beat analysis)
 
 Working examples are in [examples/](examples/), also shipped at `node_modules/svgreel/examples/`.
 
