@@ -263,6 +263,8 @@ function keyframesRule(prop: string, kfs: Keyframe[], ctx: Ctx): string {
   return name;
 }
 
+const CREDIT = "<!-- Built with svgreel: https://github.com/SegaraRai/svgreel -->";
+
 /** Adds xmlns/a11y/<style>, and moves repeated outlines and images into <defs> referenced by <use>. */
 function finish(root: ENode, comp: Composition, variant: Variant, css: string): string {
   const svg: ENode = {
@@ -319,8 +321,13 @@ function finish(root: ENode, comp: Composition, variant: Variant, css: string): 
       children: defs,
     });
   }
-  svg.children = [...head, ...svg.children];
-  return serialize(svg);
+  // Line breaks after the opening tag, the comment and </style>, and before the closing tag keep
+  // the file readable.
+  const open = serialize({ ...svg, children: [] }).slice(0, -2);
+  const body = [...head, ...svg.children]
+    .map((c) => serialize(c) + (typeof c !== "string" && c.tag === "style" ? "\n" : ""))
+    .join("");
+  return `${open}>\n${CREDIT}\n${body}\n</${svg.tag}>`;
 }
 
 function walk(n: ENode, fn: (n: ENode) => void) {
