@@ -86,9 +86,10 @@ export function compile(
     };
   }
 
-  const frames: ENode[] = [];
-  for (let f = 0; f < n; f++) {
-    frames.push(renderFrame(comp, f, variant, params));
+  // Frames are folded into one tree as they render, so only one frame is held at a time.
+  const acc = start(renderFrame(comp, 0, variant, params), "svg", false);
+  for (let f = 1; f < n; f++) {
+    add(acc, renderFrame(comp, f, variant, params), f);
   }
 
   const ctx: Ctx = {
@@ -103,7 +104,7 @@ export function compile(
       keyframes: 0,
     },
   };
-  const root = merge(frames, "svg", ctx, false);
+  const root = merge(acc, ctx);
 
   const dur = `${fmt(n / comp.fps)}s`;
   const css =
@@ -139,51 +140,129 @@ interface Ctx {
   };
 }
 
-/** Merges the same element across all frames into one static element plus CSS animations. */
-function merge(nodes: ENode[], path: string, ctx: Ctx, inheritedOnce: boolean): ENode {
-  const first = nodes[0];
-  const once = inheritedOnce || first.attrs.has("data-once");
-  ctx.stats.elements++;
-  for (const nd of nodes) {
-    if (nd.tag !== first.tag || nd.children.length !== first.children.length) {
-      throw new Error(
-        `Element tree changes between frames at ${path} (<${first.tag}> with ${first.children.length} children vs ` +
-          `<${nd.tag}> with ${nd.children.length}). Render elements on every frame and hide them with opacity/visibility (or <Sequence>) instead.`,
-      );
+/** One property of an element across the frames added so far. */
+interface Track {
+  name: string;
+  isStyle: boolean;
+  /** The value while every frame so far had the same one. */
+  value: string | undefined;
+  /** Per-frame CSS values (cssValue), once they differ (undefined: missing on that frame). */
+  values: (string | undefined)[] | undefined;
+}
+
+/** An element across the frames added so far: frame 0's structure plus the tracks of its properties. */
+interface Acc {
+  tag: string;
+  path: string;
+  once: boolean;
+  /** In first-seen order: frame 0's attributes and styles, then ones that appear later. */
+  tracks: Map<string, Track>;
+  children: (Acc | string)[];
+}
+
+function start(node: ENode, path: string, inheritedOnce: boolean): Acc {
+  const once = inheritedOnce || node.attrs.has("data-once");
+  const tracks = new Map<string, Track>();
+  for (const [name, value] of node.attrs) {
+    tracks.set(`a:${name}`, { name, isStyle: false, value, values: undefined });
+  }
+  for (const [name, value] of node.style) {
+    tracks.set(`s:${name}`, { name, isStyle: true, value, values: undefined });
+  }
+  return {
+    tag: node.tag,
+    path,
+    once,
+    tracks,
+    children: node.children.map((c, i) => (typeof c === "string" ? c : start(c, `${path}>${c.tag}[${i}]`, once))),
+  };
+}
+
+function record(t: Track, v: string | undefined, frame: number) {
+  if (t.values) {
+    t.values.push(v === undefined ? v : cssValue(t.name, v));
+  } else if (v !== t.value) {
+    const first = t.value === undefined ? undefined : cssValue(t.name, t.value);
+    t.values = Array.from({ length: frame }, () => first);
+    t.values.push(v === undefined ? v : cssValue(t.name, v));
+  }
+}
+
+function treeChanged(acc: Acc, node: ENode | string): Error {
+  const tag = typeof node === "string" ? undefined : node.tag;
+  const count = typeof node === "string" ? undefined : node.children.length;
+  return new Error(
+    `Element tree changes between frames at ${acc.path} (<${acc.tag}> with ${acc.children.length} children vs ` +
+      `<${tag}> with ${count}). Render elements on every frame and hide them with opacity/visibility (or <Sequence>) instead.`,
+  );
+}
+
+/** Adds frame `frame` (1 or later) of the element to its accumulated tracks. */
+function add(acc: Acc, node: ENode, frame: number) {
+  if (node.tag !== acc.tag || node.children.length !== acc.children.length) {
+    throw treeChanged(acc, node);
+  }
+  let seen = 0;
+  for (const t of acc.tracks.values()) {
+    const v = (t.isStyle ? node.style : node.attrs).get(t.name);
+    if (v !== undefined) {
+      seen++;
+    }
+    record(t, v, frame);
+  }
+  if (seen < node.attrs.size + node.style.size) {
+    for (const [isStyle, map] of [
+      [false, node.attrs],
+      [true, node.style],
+    ] as const) {
+      for (const [name, value] of map) {
+        const key = `${isStyle ? "s" : "a"}:${name}`;
+        if (!acc.tracks.has(key)) {
+          const values: (string | undefined)[] = Array.from({ length: frame }, () => undefined);
+          values.push(cssValue(name, value));
+          acc.tracks.set(key, { name, isStyle, value: undefined, values });
+        }
+      }
     }
   }
+  acc.children.forEach((c, i) => {
+    const child = node.children[i];
+    if (typeof c === "string") {
+      if (child !== c) {
+        throw new Error(
+          `Text content changes between frames at ${acc.path}. Use <Text> (outlined glyphs) and animate visibility instead.`,
+        );
+      }
+    } else if (typeof child === "string") {
+      throw treeChanged(c, child);
+    } else {
+      add(c, child, frame);
+    }
+  });
+}
+
+/** Turns an element's tracks into one static element plus CSS animations. */
+function merge(acc: Acc, ctx: Ctx): ENode {
+  const { path, once } = acc;
+  ctx.stats.elements++;
 
   const out: ENode = {
-    tag: first.tag,
+    tag: acc.tag,
     attrs: new Map(),
     style: new Map(),
     children: [],
   };
   const animations: string[] = [];
 
-  const keys = new Set<string>();
-  for (const nd of nodes) {
-    for (const k of nd.attrs.keys()) {
-      keys.add(`a:${k}`);
-    }
-    for (const k of nd.style.keys()) {
-      keys.add(`s:${k}`);
-    }
-  }
-
-  for (const key of keys) {
-    const isStyle = key.startsWith("s:");
-    const name = key.slice(2);
-    const raw = nodes.map((nd) => (isStyle ? nd.style : nd.attrs).get(name));
-    const same = raw.every((v) => v === raw[0]);
-    if (same) {
-      (isStyle ? out.style : out.attrs).set(name, raw[0]!);
+  for (const { name, isStyle, value, values: raw } of acc.tracks.values()) {
+    if (!raw) {
+      (isStyle ? out.style : out.attrs).set(name, value!);
       continue;
     }
     // A property animated as CSS can't also be set as an attribute on another frame.
     if (!ANIMATABLE.has(name)) {
       throw new Error(
-        `"${name}" changes between frames at ${path} <${first.tag}>, but only these can animate: ${[...ANIMATABLE].join(", ")}`,
+        `"${name}" changes between frames at ${path} <${acc.tag}>, but only these can animate: ${[...ANIMATABLE].join(", ")}`,
       );
     }
     if (!isStyle && name === "transform") {
@@ -193,9 +272,9 @@ function merge(nodes: ENode[], path: string, ctx: Ctx, inheritedOnce: boolean): 
     }
     const missing = raw.findIndex((v) => v === undefined);
     if (missing >= 0) {
-      throw new Error(`"${name}" at ${path} <${first.tag}> is missing on frame ${missing}; set it on every frame.`);
+      throw new Error(`"${name}" at ${path} <${acc.tag}> is missing on frame ${missing}; set it on every frame.`);
     }
-    const values = raw.map((v) => cssValue(name, v!));
+    const values = raw as string[];
     const kfs = buildKeyframes(values);
     animations.push(keyframesRule(name, kfs, ctx));
     // Static value (shown under reduced motion): once-animations rest at their end state.
@@ -208,7 +287,7 @@ function merge(nodes: ENode[], path: string, ctx: Ctx, inheritedOnce: boolean): 
   if (animations.length) {
     if (out.attrs.has("transform") && out.style.has("transform")) {
       throw new Error(
-        `${path} <${first.tag}> has both a transform attribute and an animated CSS transform; wrap it in a <g>.`,
+        `${path} <${acc.tag}> has both a transform attribute and an animated CSS transform; wrap it in a <g>.`,
       );
     }
     const cls = `a${(ctx.nextClass++).toString(36)}`;
@@ -219,25 +298,9 @@ function merge(nodes: ENode[], path: string, ctx: Ctx, inheritedOnce: boolean): 
     ctx.stats.animatedElements++;
   }
 
-  first.children.forEach((c, i) => {
-    if (typeof c === "string") {
-      if (nodes.some((nd) => nd.children[i] !== c)) {
-        throw new Error(
-          `Text content changes between frames at ${path}. Use <Text> (outlined glyphs) and animate visibility instead.`,
-        );
-      }
-      out.children.push(c);
-    } else {
-      out.children.push(
-        merge(
-          nodes.map((nd) => nd.children[i] as ENode),
-          `${path}>${c.tag}[${i}]`,
-          ctx,
-          once,
-        ),
-      );
-    }
-  });
+  for (const c of acc.children) {
+    out.children.push(typeof c === "string" ? c : merge(c, ctx));
+  }
   return out;
 }
 
@@ -246,7 +309,9 @@ function cssValue(name: string, v: string): string {
   if (LENGTHS.has(name)) {
     s = s.replace(/(^|[\s,])(-?[\d.]+)(?=$|[\s,])/g, "$1$2px");
   }
-  return s;
+  // A value sliced out of the frame's markup would keep all of it (~hundreds of KB) alive for
+  // the rest of the compile; this makes a copy of its own.
+  return s === v && s.length > 12 ? (s + " ").slice(0, -1) : s;
 }
 
 function keyframesRule(prop: string, kfs: Keyframe[], ctx: Ctx): string {

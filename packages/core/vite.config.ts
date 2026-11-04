@@ -25,11 +25,13 @@ export default defineConfig({
   },
 
   // `vp pack`: the library and CLI. Shared modules land in one chunk, so the CLI and user
-  // compositions see the same React contexts and font registry.
+  // compositions see the same React contexts and font registry. The CLI's compile workers load
+  // worker.js by that name, next to the chunk with run.ts.
   pack: {
     entry: {
       index: "src/index.ts",
       cli: "src/cli/main.ts",
+      worker: "src/cli/worker.ts",
     },
     format: ["esm"],
     dts: true,

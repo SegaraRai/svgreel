@@ -80,7 +80,7 @@ served on localhost, with live controls for the composition's params.
 ## CLI
 
 ```text
-svgreel build [names...] [--watch] [--port 5331] [--dir compositions] [--out dist] [--param key=value] [--no-refresh]
+svgreel build [names...] [--watch] [--port 5331] [--dir compositions] [--out dist] [--param key=value] [--no-refresh] [--jobs n]
 ```
 
 Each `<dir>/<name>/index.tsx` that default-exports `defineComposition(...)` becomes
@@ -89,6 +89,10 @@ are compiled on the fly (oxc-node); your `tsconfig.json` needs `"jsx": "react-js
 
 To publish the preview page on a website, build with `--no-refresh`: the page then stops checking
 for newer builds, which it otherwise does every second by reloading `preview-data.js`.
+
+Variants compile in parallel, one worker thread per CPU; `--jobs n` caps that (each worker of a
+large composition can use a few hundred MB), and `--jobs 1` compiles in the main thread. React
+runs in its production build; set `NODE_ENV=development` to get its warnings back.
 
 ## Docs
 

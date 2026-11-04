@@ -17,7 +17,8 @@ packages/core/    the svgreel package (name "svgreel")
     fonts.ts        fontkit shaping, fallback chains, line breaking
     fontsource.ts   FontSpecs from @fontsource packages
     components/     Text, SlotCounter, CodeBlock, …
-    cli/main.ts     `svgreel build`
+    cli/main.ts     `svgreel build` entry: sets NODE_ENV=production, then loads run.ts
+    cli/run.ts      the CLI; compiles variants in worker threads (cli/worker.ts)
   preview/          preview page (React), bundled to dist/preview by `vp build`
   docs/             user docs, shipped in the package
   examples/         demo compositions, shipped in the package; also the visual test bed

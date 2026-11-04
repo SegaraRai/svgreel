@@ -28,6 +28,58 @@ describe("compile: shared outlines", () => {
   });
 });
 
+describe("compile: frames", () => {
+  const comp = (component: () => React.ReactNode) =>
+    defineComposition({ component, width: 10, height: 10, fps: 30, durationInFrames: 3 });
+
+  it("animates what changes and keeps the rest static", () => {
+    const svg = compile(
+      comp(() => {
+        const frame = useCurrentFrame();
+        return (
+          <svg>
+            <rect width={10} height={10} opacity={frame === 2 ? 1 : 0} fill="red" />
+          </svg>
+        );
+      }),
+    ).svg;
+    expect(svg).toMatch(/<rect width="10" height="10" fill="red" class="m a0" style="opacity:1"\/>/);
+    expect(svg).toContain("@keyframes k0{0%{opacity:0}33.333%{opacity:0}66.667%{opacity:1}100%{opacity:1}}");
+  });
+
+  it("reports a property that appears or disappears", () => {
+    expect(() =>
+      compile(
+        comp(() => {
+          const frame = useCurrentFrame();
+          return (
+            <svg>
+              <rect opacity={frame === 1 ? 1 : undefined} />
+            </svg>
+          );
+        }),
+      ),
+    ).toThrow(/"opacity" at svg>rect\[0\] <rect> is missing on frame 0/);
+  });
+
+  it("reports a changing tree, text or non-animatable property", () => {
+    const Tree = () => <svg>{useCurrentFrame() === 2 ? <g /> : <rect />}</svg>;
+    expect(() => compile(comp(Tree))).toThrow(/Element tree changes between frames at svg>rect\[0\]/);
+    const Txt = () => (
+      <svg>
+        <text>{useCurrentFrame() ? "b" : "a"}</text>
+      </svg>
+    );
+    expect(() => compile(comp(Txt))).toThrow(/Text content changes between frames at svg>text\[0\]/);
+    const Width = () => (
+      <svg>
+        <rect width={useCurrentFrame()} />
+      </svg>
+    );
+    expect(() => compile(comp(Width))).toThrow(/"width" changes between frames/);
+  });
+});
+
 describe("compile: variants", () => {
   function Dot() {
     const frame = useCurrentFrame();
