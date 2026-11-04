@@ -169,6 +169,7 @@ export function App() {
               {embed ? "Hide embed code" : "Embed code"}
             </button>
           </div>
+          <Params comp={comp} />
           {embed && <Embed comp={comp} />}
           <main
             {...style("grid px-4 pbe-4 flex-1 grid-cols-[repeat(var(--cols),minmax(0,1fr))] content-start gap-3", {
@@ -299,6 +300,46 @@ function Embed({ comp }: { comp: CompositionData }) {
           </pre>
         </div>
       ))}
+    </section>
+  );
+}
+
+/** The composition's params and the values the files were built with (read-only). */
+function Params({ comp }: { comp: CompositionData }) {
+  const params = comp.params ?? [];
+  if (!params.length) {
+    return null;
+  }
+  return (
+    <section {...style("flex px-4 pbe-2.5 flex-wrap items-center gap-x-5 gap-y-1.5")}>
+      <span {...style("text-muted")}>Params</span>
+      {params.map((p) => {
+        // A default can depend on the variant, so the files may use different values.
+        const seen = [...new Set(comp.outputs.map((o) => o.params?.[p.key]))].filter((v) => v !== undefined);
+        return (
+          <span key={p.key} {...style("inline-flex items-center gap-1.5")} title={p.description}>
+            <span>{p.label ?? p.key}</span>
+            {seen.map((v) => (
+              <code
+                key={String(v)}
+                {...style(
+                  "inline-flex px-1.5 items-center gap-1 font-mono text-caption bg-panel rounded-sm border border-line",
+                )}
+              >
+                {p.kind === "color" && (
+                  <span
+                    {...style("inline-block size-2.5 bg-(--swatch) rounded-full border border-line", {
+                      "--swatch": String(v),
+                    })}
+                  />
+                )}
+                {typeof v === "string" && p.kind !== "color" ? JSON.stringify(v) : String(v)}
+              </code>
+            ))}
+            {comp.overridden?.includes(p.key) && <span {...style("text-accent text-micro")}>--param</span>}
+          </span>
+        );
+      })}
     </section>
   );
 }

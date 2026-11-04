@@ -10,8 +10,8 @@ Don't add or remove elements over time (`{frame > 30 && <Foo />}`). Render every
 frame and hide it with `opacity`, `visibility` or `<Sequence>`, which sets `visibility: hidden`
 outside its range.
 
-Branching on props or on `useVariant()` (theme, lang, …) is fine, because they don't change
-between frames.
+Branching on props, `useVariant()` (theme, lang, …) or `useParams()` is fine, because they don't
+change between frames.
 For the same reason, don't use `Math.random()`: use `random(seed)`, which gives the same value
 on every frame.
 

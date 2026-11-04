@@ -3,12 +3,26 @@ export {
   defineComposition,
   Sequence,
   useCurrentFrame,
+  useParams,
   useVariant,
   useVideoConfig,
   type Composition,
   type Marker,
   type VideoConfig,
 } from "./timeline.js";
+export {
+  defineParams,
+  param,
+  type BooleanParam,
+  type ColorParam,
+  type NumberParam,
+  type Param,
+  type ParamDefault,
+  type ParamSchema,
+  type ParamsOf,
+  type SelectParam,
+  type TextParam,
+} from "./params.js";
 export { defineVariants, type PredefinedVariants, type Variant, type VariantAxes, type VariantOf } from "./variants.js";
 
 export { charAnimations } from "./animation/charAnimations.js";

@@ -5,6 +5,7 @@
  *   svgreel build                 # every composition in compositions/
  *   svgreel build profile demo    # only these
  *   svgreel build --watch [names] # rebuild on change (dist/index.html refreshes itself)
+ *   svgreel build --param accent=#f00   # override a param default
  *
  * Output: dist/<name>/<name>[-<value>...].svg (+ .still.svg), dist/index.html (preview).
  */
@@ -19,6 +20,7 @@ import { register } from "tsx/esm/api";
 
 import { compile } from "../compiler/compile.js";
 import { registerFonts } from "../fonts.js";
+import { describeParams, parseParamValue, type ParamInfo, type ParamValues } from "../params.js";
 import type { Composition } from "../timeline.js";
 import { expandVariants, normalizeAxes, variantFileName, type Variant } from "../variants.js";
 
@@ -31,6 +33,7 @@ Options:
   --watch        Rebuild when compositions or fonts change
   --dir <dir>    Folder with compositions (default: compositions)
   --out <dir>    Output folder (default: dist)
+  --param <k=v>  Override a param default in every composition that declares it (repeatable)
   -h, --help     Show this help
 `;
 
@@ -40,6 +43,7 @@ const { positionals, values } = parseArgs({
     watch: { type: "boolean", default: false },
     dir: { type: "string", default: "compositions" },
     out: { type: "string", default: "dist" },
+    param: { type: "string", multiple: true, default: [] },
     help: { type: "boolean", short: "h", default: false },
   },
 });
@@ -49,6 +53,19 @@ if (values.help || command !== "build") {
   process.stdout.write(HELP);
   process.exit(values.help ? 0 : 1);
 }
+
+/** `--param key=value`, as given (parsed per composition, by the param's kind). */
+const PARAM_ARGS = new Map<string, string>();
+for (const arg of values.param!) {
+  const i = arg.indexOf("=");
+  if (i <= 0) {
+    console.error(`--param expects key=value, got "${arg}".`);
+    process.exit(1);
+  }
+  PARAM_ARGS.set(arg.slice(0, i), arg.slice(i + 1));
+}
+/** --param keys some composition declared; the rest are reported as unknown. */
+const usedParams = new Set<string>();
 
 const ROOT = process.cwd();
 const COMPOSITIONS = path.resolve(ROOT, values.dir!);
@@ -75,6 +92,8 @@ export interface Output {
   variant: Variant;
   /** False for motion "still". */
   animated: boolean;
+  /** Param values this file was built with. */
+  params: ParamValues;
   file: string;
   bytes: number;
 }
@@ -90,6 +109,9 @@ export interface Manifest {
   markers: { frame: number; label: string }[];
   /** Variant keys and their values, in file-name order (motion last). */
   variants: [string, string[]][];
+  params: ParamInfo[];
+  /** Param keys set with --param. */
+  overridden: string[];
   outputs: Output[];
   stats?: {
     frames: number;
@@ -118,17 +140,26 @@ async function buildOne(name: string): Promise<boolean> {
       );
     }
     registerFonts(comp.fonts ?? []);
+    const overrides: Record<string, string | number | boolean> = {};
+    for (const [key, raw] of PARAM_ARGS) {
+      const p = comp.params?.[key];
+      if (p) {
+        overrides[key] = parseParamValue(key, p, raw);
+        usedParams.add(key);
+      }
+    }
     const axes = normalizeAxes(comp.variants);
     const keys = axes.map(([k]) => k);
     const outputs: Output[] = [];
     let stats: Manifest["stats"];
     for (const variant of expandVariants(comp.variants)) {
-      const res = compile(comp, variant);
+      const res = compile(comp, variant, overrides);
       const file = variantFileName(name, variant, keys);
       fs.writeFileSync(path.join(dir, file), res.svg);
       outputs.push({
         variant,
         animated: res.animated,
+        params: res.params,
         file,
         bytes: Buffer.byteLength(res.svg),
       });
@@ -150,6 +181,8 @@ async function buildOne(name: string): Promise<boolean> {
       stillFrame: comp.stillFrame ?? comp.durationInFrames - 1,
       markers: comp.markers ?? [],
       variants: axes.map(([k, v]) => [k, [...v]]),
+      params: describeParams(comp.params),
+      overridden: Object.keys(overrides),
       outputs,
       stats: stats && { ...stats, ms },
       builtAt: new Date().toISOString(),
@@ -171,6 +204,8 @@ async function buildOne(name: string): Promise<boolean> {
       stillFrame: 0,
       markers: [],
       variants: [],
+      params: [],
+      overridden: [],
       outputs: [],
       error: err,
       builtAt: new Date().toISOString(),
@@ -258,6 +293,12 @@ async function main() {
   let ok = true;
   for (const n of names.length ? names : all) {
     ok = (await buildOne(n)) && ok;
+  }
+  const unusedParams = [...PARAM_ARGS.keys()].filter((k) => !usedParams.has(k));
+  if (unusedParams.length) {
+    console.error(`
+✗ No built composition declares param(s): ${unusedParams.join(", ")}`);
+    ok = false;
   }
   writePreviewData();
   writePreviewPage();

@@ -1,6 +1,7 @@
 import { createContext, useContext, type ComponentType, type CSSProperties, type ReactNode } from "react";
 
 import type { FontSpec } from "./fonts.js";
+import type { ParamSchema, ParamsOf, ParamValues } from "./params.js";
 import type { Variant, VariantAxes, VariantOf } from "./variants.js";
 
 export interface VideoConfig {
@@ -23,6 +24,11 @@ export interface Composition extends VideoConfig {
    * defaults to `["default", "still"]`; "still" is compiled from `stillFrame` without animation.
    */
   variants?: VariantAxes;
+  /**
+   * Named values the component reads with `useParams()`: `{ accent: param.color("#7c3aed") }`.
+   * They don't add files; `svgreel build --param accent=#f00` overrides the defaults.
+   */
+  params?: ParamSchema;
   /** Frame rendered for the static (reduced-motion) version. Defaults to the last frame. */
   stillFrame?: number;
   fonts?: FontSpec[];
@@ -39,17 +45,21 @@ export function defineComposition(c: Composition): Composition {
 const FrameContext = createContext<number>(0);
 const ConfigContext = createContext<VideoConfig | null>(null);
 const VariantContext = createContext<Variant>({ motion: "default" });
+const ParamsContext = createContext<ParamValues>({});
 
 export function TimelineProvider(props: {
   frame: number;
   config: VideoConfig;
   variant?: Variant;
+  params?: ParamValues;
   children?: ReactNode;
 }) {
   return (
     <ConfigContext.Provider value={props.config}>
       <VariantContext.Provider value={props.variant ?? { motion: "default" }}>
-        <FrameContext.Provider value={props.frame}>{props.children}</FrameContext.Provider>
+        <ParamsContext.Provider value={props.params ?? {}}>
+          <FrameContext.Provider value={props.frame}>{props.children}</FrameContext.Provider>
+        </ParamsContext.Provider>
       </VariantContext.Provider>
     </ConfigContext.Provider>
   );
@@ -66,6 +76,14 @@ export function useCurrentFrame(): number {
  */
 export function useVariant<A extends VariantAxes = VariantAxes>(): VariantOf<A> {
   return useContext(VariantContext) as VariantOf<A>;
+}
+
+/**
+ * The composition's param values, e.g. `{ accent: "#7c3aed", speed: 1 }`: defaults, or the
+ * values given with `--param`. Pass `typeof params` (from `defineParams`) for value types.
+ */
+export function useParams<S extends ParamSchema = ParamSchema>(): ParamsOf<S> {
+  return useContext(ParamsContext) as ParamsOf<S>;
 }
 
 export function useVideoConfig(): VideoConfig {

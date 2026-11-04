@@ -117,6 +117,11 @@ variants: { theme: ["dark", "light"], intro: ["a", "b"] }, // a: 90 frames, b: 1
 Remove the losing variants once they decide, and note the decision in `PROJECT.md`. Add
 `markers` for scene starts so they can jump to the part under discussion.
 
+For a value the user will keep tuning (an accent color, a speed, a headline), declare it as a
+param (`params` in `defineComposition`, read with `useParams()`) instead. It adds no files, and
+they can try a value without editing code: `pnpm build --param accent=#f0a66a`. Once they settle
+on one, make it the default.
+
 ## 5. Writing compositions
 
 The docs ship with the installed package, so they always match its version:

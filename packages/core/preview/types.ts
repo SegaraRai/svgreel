@@ -1,7 +1,11 @@
+import type { ParamInfo } from "../src/params";
+
 export interface Output {
   variant: Readonly<Record<string, string>> & { readonly motion: string };
   /** False for motion "still". */
   animated: boolean;
+  /** Param values this file was built with. */
+  params: Readonly<Record<string, string | number | boolean>>;
   file: string;
   bytes: number;
   svg: string;
@@ -21,6 +25,9 @@ export interface CompositionData {
   }[];
   /** Variant keys and their values, in file-name order (motion last). */
   variants: [string, string[]][];
+  params: ParamInfo[];
+  /** Param keys set with --param. */
+  overridden: string[];
   outputs: Output[];
   stats?: {
     frames: number;

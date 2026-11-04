@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { resolveParams, type ParamValues } from "../params.js";
 import { TimelineProvider, type Composition } from "../timeline.js";
 import { isStill, type Variant } from "../variants.js";
 import { buildKeyframes, fmt, normalizeValue, type Keyframe } from "./keyframes.js";
@@ -29,6 +30,8 @@ export interface CompileResult {
   svg: string;
   /** False for a still variant (motion "still"): one frame, no keyframes. */
   animated: boolean;
+  /** The param values this variant was rendered with. */
+  params: ParamValues;
   stats: {
     frames: number;
     elements: number;
@@ -40,7 +43,12 @@ export interface CompileResult {
 
 const DEFAULT_VARIANT: Variant = { motion: "default" };
 
-export function renderFrame(comp: Composition, frame: number, variant: Variant = DEFAULT_VARIANT): ENode {
+export function renderFrame(
+  comp: Composition,
+  frame: number,
+  variant: Variant = DEFAULT_VARIANT,
+  params: ParamValues = resolveParams(comp.params, variant),
+): ENode {
   const markup = renderToStaticMarkup(
     createElement(
       TimelineProvider,
@@ -48,6 +56,7 @@ export function renderFrame(comp: Composition, frame: number, variant: Variant =
         frame,
         config: comp,
         variant,
+        params,
       },
       createElement(comp.component),
     ),
@@ -58,21 +67,28 @@ export function renderFrame(comp: Composition, frame: number, variant: Variant =
 /**
  * Compiles one variant, which the component reads with `useVariant()`. A still variant is frame
  * `stillFrame` without animation; anything else renders every frame and animates the changes.
+ * `overrides` replace param defaults (see `resolveParams`).
  */
-export function compile(comp: Composition, variant: Variant = DEFAULT_VARIANT): CompileResult {
+export function compile(
+  comp: Composition,
+  variant: Variant = DEFAULT_VARIANT,
+  overrides: ParamValues = {},
+): CompileResult {
+  const params = resolveParams(comp.params, variant, overrides);
   const n = comp.durationInFrames;
   const stillIndex = Math.min(Math.max(comp.stillFrame ?? n - 1, 0), n - 1);
   if (isStill(variant)) {
     return {
-      svg: finish(renderFrame(comp, stillIndex, variant), comp, variant, ""),
+      svg: finish(renderFrame(comp, stillIndex, variant, params), comp, variant, ""),
       animated: false,
+      params,
       stats: { frames: 1, elements: 0, animatedElements: 0, tracks: 0, keyframes: 0 },
     };
   }
 
   const frames: ENode[] = [];
   for (let f = 0; f < n; f++) {
-    frames.push(renderFrame(comp, f, variant));
+    frames.push(renderFrame(comp, f, variant, params));
   }
 
   const ctx: Ctx = {
@@ -100,6 +116,7 @@ export function compile(comp: Composition, variant: Variant = DEFAULT_VARIANT): 
   return {
     svg: finish(root, comp, variant, css),
     animated: true,
+    params,
     stats: {
       frames: n,
       ...ctx.stats,

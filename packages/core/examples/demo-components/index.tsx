@@ -1,4 +1,6 @@
 // One cell per built-in component. Copy what you need from here into your own composition.
+// The accent color and the glow are params: `svgreel build --param accent=#f0a66a` rebuilds
+// with another accent, without adding files.
 
 import type { ReactNode } from "react";
 import {
@@ -6,10 +8,12 @@ import {
   CodeBlock,
   defineComposition,
   DotGrid,
+  defineParams,
   DrawPath,
   fontsource,
   GlowOrb,
   Image,
+  param,
   PillRow,
   presence,
   ProgressBar,
@@ -19,6 +23,7 @@ import {
   Text,
   tween,
   useCurrentFrame,
+  useParams,
   WindowFrame,
   Wipe,
   type CodeTheme,
@@ -65,16 +70,22 @@ function Cell({ x, y, label, children }: { x: number; y: number; label: string; 
   );
 }
 
+const params = defineParams({
+  accent: param.color(C.accent, { description: "Glow, rings, progress bar and wipe" }),
+  glow: param.number(0.35, { min: 0, max: 1, step: 0.05, label: "Glow intensity" }),
+});
+
 function Demo() {
   const frame = useCurrentFrame();
+  const { accent, glow } = useParams<typeof params>();
   const t = (frame / N) * Math.PI * 2;
   return (
     <svg viewBox={`0 0 ${W} ${H}`}>
       <rect width={W} height={H} fill={C.bg} />
       <DotGrid color={C.dim} />
       <GlowOrb
-        color={C.accent}
-        intensity={0.35}
+        color={accent}
+        intensity={glow}
         style={{ transform: `translate(${round(900 + Math.cos(t) * 80)}px, ${round(200 + Math.sin(t * 2) * 40)}px)` }}
       />
 
@@ -146,7 +157,7 @@ function Demo() {
       </Cell>
 
       <Cell x={810} y={40} label="<Rings> + <Image>">
-        <Rings x={180} y={120} r={80} color={C.accent} muted={C.text} speed={3} />
+        <Rings x={180} y={120} r={80} color={accent} muted={C.text} speed={3} />
         {/* For a GitHub avatar: src={await fetchImage("https://github.com/<user>.png?size=192")} */}
         <Image src={new URL("./avatar.png", import.meta.url)} x={132} y={72} width={96} height={96} radius={48} />
       </Cell>
@@ -170,7 +181,7 @@ function Demo() {
           height={4}
           value={(frame % 120) / 119}
           marks={[0, 0.33, 0.66, 1]}
-          fill={C.accent}
+          fill={accent}
           track={C.dim}
         />
         <ProgressBar
@@ -227,7 +238,7 @@ function Demo() {
 
       {/* A full-frame wipe at the cut between "scenes". */}
       <Sequence from={112} durationInFrames={30}>
-        <Wipe colors={[C.accent, "#ffffff", C.accent]} opacity={[1, 0.85, 1]} />
+        <Wipe colors={[accent, "#ffffff", accent]} opacity={[1, 0.85, 1]} />
       </Sequence>
     </svg>
   );
@@ -241,6 +252,7 @@ export default defineComposition({
   durationInFrames: N,
   stillFrame: 100,
   title: "svgreel components demo",
+  params,
   markers: [
     { frame: 10, label: "code" },
     { frame: 112, label: "wipe" },

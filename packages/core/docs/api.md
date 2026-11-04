@@ -20,6 +20,7 @@ export default defineComposition({
   durationInFrames: 300,      // loop length
   fonts: [...],               // see "Fonts" below
   variants: { theme: ["dark", "light"] }, // one file per combination, see "Variants"
+  params: { accent: param.color("#7c3aed") }, // tunable values, see "Params"
   stillFrame: 120,            // frame for *.still.svg (default: last)
   title: "Accessible label",
   markers: [{ frame: 0, label: "intro" }], // jump targets in the preview
@@ -31,6 +32,7 @@ export default defineComposition({
 | `useCurrentFrame()`                | Current frame, relative to the innermost `<Sequence>`                   |
 | `useVideoConfig()`                 | `{ width, height, fps, durationInFrames }`                              |
 | `useVariant()`                     | The variant being compiled, e.g. `{ theme: "dark", motion: "default" }` |
+| `useParams()`                      | The param values, e.g. `{ accent: "#7c3aed" }`                          |
 | `<Sequence from durationInFrames>` | Shifts time for its children and hides them outside the range           |
 
 ## Variants
@@ -66,6 +68,46 @@ like `default`. For a better static version, branch on `motion === "still"` in t
 Files are named `<name>-<value>-<value>…`, in key order. For motion, `default` adds nothing,
 `still` adds `.still` and other values add `-<value>`: `dist/banner/banner-dark-ja.svg`,
 `banner-dark-ja.still.svg`. Without variants the files are `<name>.svg` / `<name>.still.svg`.
+
+## Params
+
+`params` names values the component reads with `useParams()`: an accent color, a speed, a
+headline. Unlike variants they don't add files. Every file is built with the defaults, and
+`svgreel build --param key=value` overrides one for a build:
+
+```tsx
+const params = defineParams({
+  accent: param.color("#7c3aed"),
+  speed: param.number(1, { min: 0.5, max: 2, step: 0.1 }),
+  grid: param.boolean(true),
+  headline: param.text("Hello", { label: "Headline" }),
+  align: param.select(["left", "center", "right"], "center"),
+});
+
+function Banner() {
+  const { accent, speed, align } = useParams<typeof params>(); // value types via defineParams
+  return <svg>{/* ... */}</svg>;
+}
+
+export default defineComposition({ component: Banner, params, ... });
+```
+
+| Builder                                     | Value                                                   |
+| ------------------------------------------- | ------------------------------------------------------- |
+| `param.color(default)`                      | A color string (`#hex`, `rgb()`, `hsl()`, named colors) |
+| `param.number(default, { min, max, step })` | A number; values outside `min`…`max` fail the build     |
+| `param.boolean(default)`                    | `true` or `false`                                       |
+| `param.text(default, { multiline })`        | A string                                                |
+| `param.select(options, default)`            | One of `options`, typed as their union                  |
+
+Every builder also takes `label` and `description`, shown in the preview. A default can be a
+function of the variant, for a value per theme:
+`param.color((v) => (v.theme === "dark" ? "#e6edf3" : "#1f2328"))`.
+
+`--param` is repeatable and applies to every built composition that declares the key; a key that
+none declares fails the build. Numbers and booleans are parsed from the text
+(`--param speed=1.5 --param grid=false`). The preview lists each param with the values the files
+were built with.
 
 ## Animation math
 
