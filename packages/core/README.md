@@ -65,12 +65,13 @@ pnpm svgreel build      # → dist/hello/hello.svg, dist/hello/hello.still.svg, 
 
 `dist/index.html` is a preview page that works straight from disk, with no server. It has
 play/pause, frame stepping, scrubbing, scene markers, speed control, dark/light backgrounds, and
-synced side-by-side variants. It refreshes itself after every build.
+synced side-by-side variants. It refreshes itself after every build. Under `--watch` it is also
+served on localhost, with live controls for the composition's params.
 
 ## CLI
 
 ```text
-svgreel build [names...] [--watch] [--dir compositions] [--out dist]
+svgreel build [names...] [--watch] [--port 5331] [--dir compositions] [--out dist] [--param key=value]
 ```
 
 Each `<dir>/<name>/index.tsx` that default-exports `defineComposition(...)` becomes

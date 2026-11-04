@@ -109,6 +109,18 @@ none declares fails the build. Numbers and booleans are parsed from the text
 (`--param speed=1.5 --param grid=false`). The preview lists each param with the values the files
 were built with.
 
+To tune them by eye, run `svgreel build --watch`: it also serves the preview on
+`http://127.0.0.1:5331/` (`--port` to change; the next free port if taken), where every param
+gets a control (color picker, slider when `min` and `max` are set, checkbox, text field, select).
+A change re-renders the shown files in a few hundred ms and marks them "live"; the files on
+disk keep the built values. "copy --param" and "copy values" copy the changed values, to pass to a
+build or to paste in as the new defaults. Edits survive rebuilds after a source change.
+
+Only one watch runs per output folder. Starting `--watch` again with the same options prints the
+running one's URL and exits, because it already rebuilds on every change. With other options
+(names, `--dir`, `--param`) or an updated svgreel, the new watch stops the old one and takes over
+its port, so an open preview tab keeps working. Watches of other projects are left alone.
+
 ## Animation math
 
 All of these are pure functions of the frame number.

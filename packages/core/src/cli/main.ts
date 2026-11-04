@@ -4,13 +4,14 @@
  *
  *   svgreel build                 # every composition in compositions/
  *   svgreel build profile demo    # only these
- *   svgreel build --watch [names] # rebuild on change (dist/index.html refreshes itself)
+ *   svgreel build --watch [names] # rebuild on change; serves the preview on localhost, where
+ *                                 # its param controls re-render the SVGs live
  *   svgreel build --param accent=#f00   # override a param default
  *
  * Output: dist/<name>/<name>[-<value>...].svg (+ .still.svg), dist/index.html (preview).
  */
 
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -23,6 +24,13 @@ import { registerFonts } from "../fonts.js";
 import { describeParams, parseParamValue, type ParamInfo, type ParamValues } from "../params.js";
 import type { Composition } from "../timeline.js";
 import { expandVariants, normalizeAxes, variantFileName, type Variant } from "../variants.js";
+import {
+  startWatchServer,
+  type RenderedOutput,
+  type RenderRequest,
+  type RenderResponse,
+  type WatchInfo,
+} from "./serve.js";
 
 const HELP = `Usage: svgreel build [names...] [options]
 
@@ -30,7 +38,9 @@ Builds compositions/<name>/index.tsx into <out>/<name>/*.svg and writes <out>/in
 a preview page that works when opened straight from disk.
 
 Options:
-  --watch        Rebuild when compositions or fonts change
+  --watch        Rebuild when compositions or fonts change, and serve the preview on
+                 localhost, where param controls re-render the SVGs live
+  --port <n>     Port for --watch (default: 5331, or the next free one)
   --dir <dir>    Folder with compositions (default: compositions)
   --out <dir>    Output folder (default: dist)
   --param <k=v>  Override a param default in every composition that declares it (repeatable)
@@ -44,6 +54,9 @@ const { positionals, values } = parseArgs({
     dir: { type: "string", default: "compositions" },
     out: { type: "string", default: "dist" },
     param: { type: "string", multiple: true, default: [] },
+    port: { type: "string", default: "5331" },
+    /** Internal: the live render process that --watch starts. */
+    worker: { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
 });
@@ -125,6 +138,27 @@ export interface Manifest {
   builtAt: string;
 }
 
+/** Imports a composition, registers its fonts and parses the --param values it declares. */
+async function loadComposition(name: string): Promise<{ comp: Composition; overrides: ParamValues }> {
+  const mod = await import(pathToFileURL(path.join(COMPOSITIONS, name, "index.tsx")).href);
+  const comp: Composition = mod.default;
+  if (!comp?.component) {
+    throw new Error(
+      `${path.relative(ROOT, COMPOSITIONS)}/${name}/index.tsx must \`export default defineComposition({...})\``,
+    );
+  }
+  registerFonts(comp.fonts ?? []);
+  const overrides: Record<string, string | number | boolean> = {};
+  for (const [key, raw] of PARAM_ARGS) {
+    const p = comp.params?.[key];
+    if (p) {
+      overrides[key] = parseParamValue(key, p, raw);
+      usedParams.add(key);
+    }
+  }
+  return { comp, overrides };
+}
+
 async function buildOne(name: string): Promise<boolean> {
   const dir = path.join(OUT, name);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -132,22 +166,7 @@ async function buildOne(name: string): Promise<boolean> {
   const t0 = performance.now();
   let manifest: Manifest;
   try {
-    const mod = await import(pathToFileURL(path.join(COMPOSITIONS, name, "index.tsx")).href);
-    const comp: Composition = mod.default;
-    if (!comp?.component) {
-      throw new Error(
-        `${path.relative(ROOT, COMPOSITIONS)}/${name}/index.tsx must \`export default defineComposition({...})\``,
-      );
-    }
-    registerFonts(comp.fonts ?? []);
-    const overrides: Record<string, string | number | boolean> = {};
-    for (const [key, raw] of PARAM_ARGS) {
-      const p = comp.params?.[key];
-      if (p) {
-        overrides[key] = parseParamValue(key, p, raw);
-        usedParams.add(key);
-      }
-    }
+    const { comp, overrides } = await loadComposition(name);
     const axes = normalizeAxes(comp.variants);
     const keys = axes.map(([k]) => k);
     const outputs: Output[] = [];
@@ -296,22 +315,145 @@ async function main() {
   }
   const unusedParams = [...PARAM_ARGS.keys()].filter((k) => !usedParams.has(k));
   if (unusedParams.length) {
-    console.error(`
-✗ No built composition declares param(s): ${unusedParams.join(", ")}`);
+    console.error(`\n✗ No built composition declares param(s): ${unusedParams.join(", ")}`);
     ok = false;
   }
   writePreviewData();
   writePreviewPage();
-  console.log(`\nPreview: ${pathToFileURL(path.join(OUT, "index.html")).href}`);
+  // Under --watch the parent serves the preview and passes its URL down.
+  console.log(`\nPreview: ${process.env.SVGREEL_PREVIEW_URL ?? pathToFileURL(path.join(OUT, "index.html")).href}`);
   return ok;
+}
+
+/** Compiles the requested files of one composition with the preview's param values. */
+async function renderLive(req: RenderRequest): Promise<RenderResponse> {
+  const t0 = performance.now();
+  if (!discover().includes(req.name)) {
+    return { error: `Unknown composition "${req.name}".` };
+  }
+  const { comp, overrides } = await loadComposition(req.name);
+  const keys = normalizeAxes(comp.variants).map(([k]) => k);
+  const wanted = new Set(req.files);
+  const outputs: RenderedOutput[] = [];
+  for (const variant of expandVariants(comp.variants)) {
+    const file = variantFileName(req.name, variant, keys);
+    if (!wanted.has(file)) {
+      continue;
+    }
+    const res = compile(comp, variant, { ...overrides, ...req.params });
+    outputs.push({
+      file,
+      variant,
+      animated: res.animated,
+      params: res.params,
+      bytes: Buffer.byteLength(res.svg),
+      svg: res.svg,
+    });
+  }
+  return { outputs, ms: Math.round(performance.now() - t0) };
+}
+
+/**
+ * The live render process: imports compositions on request and keeps them loaded. Watch mode
+ * replaces it after every change, so edited modules are imported fresh.
+ */
+function runWorker() {
+  register();
+  process.on("disconnect", () => process.exit(0));
+  process.on("message", (msg: { id: number; req: RenderRequest }) => {
+    void renderLive(msg.req)
+      .catch((e: unknown): RenderResponse => ({ error: e instanceof Error ? e.message : String(e) }))
+      .then((res) => process.send!({ id: msg.id, res }));
+  });
 }
 
 /**
  * Watch mode: each rebuild runs in a fresh child process, so edited modules are re-imported
- * (Node caches ES modules for the life of a process).
+ * (Node caches ES modules for the life of a process). The preview is served on localhost; its
+ * live renders run in another child, started on the first request and replaced after a change.
  */
-function watch() {
+async function watch() {
   const args = process.argv.slice(2).filter((a) => a !== "--watch");
+  const script = [...process.execArgv, fileURLToPath(import.meta.url)];
+
+  let worker: ChildProcess | undefined;
+  let nextId = 0;
+  const pending = new Map<number, (res: RenderResponse) => void>();
+  /** Ends the worker; open requests get `res` (a rebuild: ask again; a crash: an error). */
+  const stopWorker = (res: RenderResponse = { error: "Rebuilding after a change.", retry: true }) => {
+    worker?.kill();
+    worker = undefined;
+    for (const done of pending.values()) {
+      done(res);
+    }
+    pending.clear();
+  };
+  const render = (req: RenderRequest) =>
+    new Promise<RenderResponse>((resolve) => {
+      if (!worker) {
+        const child = spawn(process.execPath, [...script, ...args, "--worker"], {
+          stdio: ["ignore", "inherit", "inherit", "ipc"],
+        });
+        child.on("message", (msg: { id: number; res: RenderResponse }) => {
+          pending.get(msg.id)?.(msg.res);
+          pending.delete(msg.id);
+        });
+        child.on("exit", (code) => {
+          if (worker === child) {
+            stopWorker({ error: `The render process exited (code ${code}); see the terminal.` });
+          }
+        });
+        worker = child;
+      }
+      const id = nextId++;
+      pending.set(id, resolve);
+      worker.send({ id, req });
+    });
+
+  let build: ChildProcess | undefined;
+  const cliFile = fileURLToPath(import.meta.url);
+  const info: WatchInfo = {
+    out: OUT,
+    config: JSON.stringify({
+      dir: COMPOSITIONS,
+      names: [...names].sort(),
+      params: [...PARAM_ARGS].map(([k, v]) => `${k}=${v}`).sort(),
+    }),
+    cli: `${cliFile}@${fs.statSync(cliFile).mtimeMs}`,
+    pid: process.pid,
+  };
+  try {
+    const started = await startWatchServer({
+      root: OUT,
+      port: Number(values.port),
+      info,
+      render,
+      onShutdown: () => {
+        console.log("\n[watch] Another watch for this output took over. Stopping.");
+        stopWorker();
+        build?.kill();
+        process.exit(0);
+      },
+    });
+    if (started.kind === "running") {
+      // It rebuilds on its own, and the preview reloads itself: nothing to restart.
+      console.log(
+        `[watch] Already running for ${path.relative(ROOT, OUT) || "."} with these options (pid ${started.running.pid}).\n` +
+          `Preview: ${started.url}`,
+      );
+      return;
+    }
+    if (started.replaced) {
+      console.log(
+        `[watch] Replaced the watch for ${path.relative(ROOT, OUT) || "."} (pid ${started.replaced.pid}), ` +
+          "which had other options or an older CLI.",
+      );
+    }
+    process.env.SVGREEL_PREVIEW_URL = started.url;
+  } catch (e) {
+    console.error(`[watch] Could not start the preview server (${String(e)}); open the file instead.`);
+  }
+
   let timer: NodeJS.Timeout | undefined;
   let running = false;
   let again = false;
@@ -321,9 +463,10 @@ function watch() {
       return;
     }
     running = true;
-    const child = spawn(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), ...args], {
+    const child = spawn(process.execPath, [...script, ...args], {
       stdio: "inherit",
     });
+    build = child;
     child.on("exit", () => {
       running = false;
       console.log(`\n[watch] ${new Date().toLocaleTimeString()}: waiting for changes (Ctrl+C to stop)`);
@@ -338,6 +481,7 @@ function watch() {
       continue;
     }
     fs.watch(dir, { recursive: true }, () => {
+      stopWorker();
       clearTimeout(timer);
       timer = setTimeout(run, 150);
     });
@@ -345,8 +489,10 @@ function watch() {
   run();
 }
 
-if (values.watch) {
-  watch();
+if (values.worker) {
+  runWorker();
+} else if (values.watch) {
+  await watch();
 } else {
   process.exitCode = (await main()) ? 0 : 1;
 }

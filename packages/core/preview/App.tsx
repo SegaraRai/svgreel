@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { style } from "stillwind/react";
 
+import type { ParamValues } from "../src/params";
 import { variantKeyLabel, variantValueLabel } from "../src/variants";
 import { clock } from "./clock";
 import { embedSnippets } from "./embed";
+import { fittingEdits, Params, useLiveRender, useLiveServer } from "./Params";
 import { SvgView } from "./SvgView";
 import type { CompositionData, Output, PreviewData } from "./types";
 
@@ -69,6 +71,11 @@ export function App() {
   // Hidden variant values, as "key=value". Stills start hidden: the animated files are the main output.
   const [hidden, setHidden] = useState<Set<string>>(() => new Set(["motion=still"]));
   const [embed, setEmbed] = useState(false);
+  const live = useLiveServer();
+  // Param values changed in the preview, per composition (only under --watch).
+  const [paramEdits, setParamEdits] = useState<Record<string, ParamValues>>({});
+  // Edits that no longer fit the schema (a param renamed or changed in the source) are dropped.
+  const edits = comp ? fittingEdits(comp.params ?? [], paramEdits[comp.name] ?? {}) : {};
 
   useEffect(() => {
     if (comp) {
@@ -76,6 +83,19 @@ export function App() {
     }
     setFocus(null);
   }, [comp?.name, comp?.fps, comp?.durationInFrames]);
+
+  const built = (comp?.outputs ?? []).filter(
+    (o) => Object.entries(o.variant).every(([k, v]) => !hidden.has(`${k}=${v}`)) && (!focus || o.file === focus),
+  );
+  const render = useLiveRender(
+    live,
+    comp?.name ?? "",
+    built.map((o) => o.file),
+    edits,
+    data?.buildId ?? "",
+  );
+  // Live renders replace the built files they cover; the rest show the built file until theirs arrives.
+  const outputs = built.map((o) => render?.outputs[o.file] ?? o);
 
   if (!data) {
     return (
@@ -85,9 +105,6 @@ export function App() {
     );
   }
 
-  const outputs = (comp?.outputs ?? []).filter(
-    (o) => Object.entries(o.variant).every(([k, v]) => !hidden.has(`${k}=${v}`)) && (!focus || o.file === focus),
-  );
   const toggle = (id: string) => {
     const next = new Set(hidden);
     if (next.has(id)) {
@@ -169,14 +186,20 @@ export function App() {
               {embed ? "Hide embed code" : "Embed code"}
             </button>
           </div>
-          <Params comp={comp} />
+          <Params
+            comp={comp}
+            live={live}
+            values={edits}
+            onChange={(v) => setParamEdits({ ...paramEdits, [comp.name]: v })}
+            render={render}
+          />
           {embed && <Embed comp={comp} />}
           <main
             {...style("grid px-4 pbe-4 flex-1 grid-cols-[repeat(var(--cols),minmax(0,1fr))] content-start gap-3", {
               "--cols": String(focus ? 1 : cols),
             })}
           >
-            {outputs.map((o) => (
+            {outputs.map((o, i) => (
               <Card
                 key={`${data.buildId}:${o.file}`}
                 comp={comp}
@@ -184,6 +207,7 @@ export function App() {
                 bg={bg}
                 focused={focus === o.file}
                 onFocus={() => setFocus(focus === o.file ? null : o.file)}
+                live={o !== built[i]}
               />
             ))}
           </main>
@@ -202,12 +226,15 @@ function Card({
   bg,
   focused,
   onFocus,
+  live,
 }: {
   comp: CompositionData;
   output: Output;
   bg: Bg;
   focused: boolean;
   onFocus: () => void;
+  /** Rendered with the preview's param values, not the file on disk. */
+  live: boolean;
 }) {
   // The card shows the SVG on GitHub's README backgrounds.
   const surface = bg === "auto" ? (output.variant.theme === "dark" ? "dark" : "light") : bg;
@@ -227,6 +254,11 @@ function Card({
         <span>
           {values.join(" · ") || "default"}{" "}
           <span {...style("ml-1 opacity-60")}>{variantValueLabel("motion", motion)}</span>
+          {live && (
+            <span {...style("ml-2 px-1 text-micro text-white bg-accent rounded-sm")} title="Live render, not saved">
+              live
+            </span>
+          )}
         </span>
         <span {...style("flex items-center gap-2.5 tabular-nums opacity-80")}>
           {kb(output.bytes)}
@@ -304,46 +336,6 @@ function Embed({ comp }: { comp: CompositionData }) {
   );
 }
 
-/** The composition's params and the values the files were built with (read-only). */
-function Params({ comp }: { comp: CompositionData }) {
-  const params = comp.params ?? [];
-  if (!params.length) {
-    return null;
-  }
-  return (
-    <section {...style("flex px-4 pbe-2.5 flex-wrap items-center gap-x-5 gap-y-1.5")}>
-      <span {...style("text-muted")}>Params</span>
-      {params.map((p) => {
-        // A default can depend on the variant, so the files may use different values.
-        const seen = [...new Set(comp.outputs.map((o) => o.params?.[p.key]))].filter((v) => v !== undefined);
-        return (
-          <span key={p.key} {...style("inline-flex items-center gap-1.5")} title={p.description}>
-            <span>{p.label ?? p.key}</span>
-            {seen.map((v) => (
-              <code
-                key={String(v)}
-                {...style(
-                  "inline-flex px-1.5 items-center gap-1 font-mono text-caption bg-panel rounded-sm border border-line",
-                )}
-              >
-                {p.kind === "color" && (
-                  <span
-                    {...style("inline-block size-2.5 bg-(--swatch) rounded-full border border-line", {
-                      "--swatch": String(v),
-                    })}
-                  />
-                )}
-                {typeof v === "string" && p.kind !== "color" ? JSON.stringify(v) : String(v)}
-              </code>
-            ))}
-            {comp.overridden?.includes(p.key) && <span {...style("text-accent text-micro")}>--param</span>}
-          </span>
-        );
-      })}
-    </section>
-  );
-}
-
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div {...style("flex items-center gap-2")}>
@@ -369,7 +361,9 @@ function Transport({ comp }: { comp: CompositionData }) {
       const t = e.target;
       if (
         t instanceof HTMLSelectElement ||
-        (t instanceof HTMLInputElement && !["range", "checkbox"].includes(t.type))
+        t instanceof HTMLTextAreaElement ||
+        // Inputs keep their keys, except checkboxes and the timeline (param sliders move themselves).
+        (t instanceof HTMLInputElement && t.type !== "checkbox" && t.dataset.timeline === undefined)
       ) {
         return;
       }
@@ -439,6 +433,7 @@ function Transport({ comp }: { comp: CompositionData }) {
         <input
           {...style("m-0 w-full accent-accent")}
           type="range"
+          data-timeline
           min={0}
           max={n - 1}
           step={1}

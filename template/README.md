@@ -46,7 +46,7 @@ Requires Node.js 22.12+ and [pnpm](https://pnpm.io/) (npm also works).
 pnpm install
 pnpm build            # every composition → dist/, plus dist/index.html
 pnpm build profile    # just one
-pnpm watch            # rebuild on save
+pnpm watch            # rebuild on save; preview with live param controls on localhost
 pnpm check            # format, lint, type check (pnpm fix to auto-fix)
 ```
 

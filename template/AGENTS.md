@@ -119,8 +119,9 @@ Remove the losing variants once they decide, and note the decision in `PROJECT.m
 
 For a value the user will keep tuning (an accent color, a speed, a headline), declare it as a
 param (`params` in `defineComposition`, read with `useParams()`) instead. It adds no files, and
-they can try a value without editing code: `pnpm build --param accent=#f0a66a`. Once they settle
-on one, make it the default.
+they can try a value without editing code: `pnpm build --param accent=#f0a66a`, or with sliders
+and color pickers in the preview served by `pnpm watch` (which they run themselves). Once they
+settle on one (the preview's "copy values" gives you the exact values), make it the default.
 
 ## 5. Writing compositions
 
