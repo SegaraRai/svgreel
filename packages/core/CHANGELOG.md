@@ -1,5 +1,19 @@
 # svgreel
 
+## 0.3.0
+
+### Minor Changes
+
+- Language-aware code highlighting. `highlightCode(code, { lang, theme })` highlights code with shiki (VS Code's TextMate grammars) and returns tokens for `<CodeBlock>`'s new `tokens` prop, which replaces `lines`: `const { tokens } = await highlightCode(source, { lang: "tsx", theme: "github-dark" })`, then `<CodeBlock tokens={tokens} … />`. `theme` takes any of shiki's themes, a VS Code theme object, or your existing `CodeTheme`, whose new optional `function` and `type` colors apply to function and type names. Block comments, template literals and other multi-line constructs are now colored correctly. `tokens` also accepts runs from any other highlighter (`{ text, color?, weight? }` per line), and `codeBlockHeight()` accepts `tokens` too. `<CodeBlock lines>` and `highlight()` work as before.
+
+### Patch Changes
+
+- `<CodeBlock>`'s caret now moves with the typed text and reaches the end of each line: before, at speeds under one frame per character it jumped to the next line a few characters early, and waited out the line pause at the start of the next, still empty, line. It now rests at the end of the typed line until the next line starts, and no longer slides diagonally between lines.
+
+- The caret of `<CodeBlock>`, `<Terminal>` and `<Typewriter>` no longer lags one character behind the typed text on some frames. With a fractional `speed`, floating-point error made it count one character too few.
+
+- In the preview page, clicking an animated SVG plays or pauses it, like the play button. The transport buttons use icons, and the next-frame button shows a skip-forward icon, so it no longer looks like the play button.
+
 ## 0.2.0
 
 ### Minor Changes
