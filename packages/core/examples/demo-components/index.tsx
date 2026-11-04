@@ -9,6 +9,7 @@ import {
   defineComposition,
   DotGrid,
   defineParams,
+  DirectionProvider,
   DrawPath,
   fontsource,
   GlowOrb,
@@ -73,11 +74,13 @@ function Cell({ x, y, label, children }: { x: number; y: number; label: string; 
 const params = defineParams({
   accent: param.color(C.accent, { description: "Glow, rings, progress bar and wipe" }),
   glow: param.number(0.35, { min: 0, max: 1, step: 0.05, label: "Glow intensity" }),
+  windowPreset: param.select(["macos", "windows", "gnome", "plain"], "macos", { label: "Window preset" }),
+  dir: param.select(["ltr", "rtl"], "ltr", { label: "Window direction" }),
 });
 
 function Demo() {
   const frame = useCurrentFrame();
-  const { accent, glow } = useParams<typeof params>();
+  const { accent, glow, windowPreset, dir } = useParams<typeof params>();
   const t = (frame / N) * Math.PI * 2;
   return (
     <svg viewBox={`0 0 ${W} ${H}`}>
@@ -206,34 +209,44 @@ function Demo() {
       </Cell>
 
       <Cell x={810} y={380} label="<WindowFrame> + <Wipe>">
-        <WindowFrame x={20} y={0} width={320} height={220} title="preview" font={{ family: SANS, size: 13 }}>
-          <Text
-            x={160}
-            y={95}
-            anchor="middle"
-            baseline="middle"
-            family={SANS}
-            weight={800}
-            size={32}
-            fill={C.text}
-            style={{ opacity: round(presence(frame, 0, 120, 10, N)) }}
+        <DirectionProvider dir={dir}>
+          <WindowFrame
+            x={20}
+            y={0}
+            width={320}
+            height={220}
+            preset={windowPreset}
+            title="preview"
+            font={{ family: SANS, size: 13 }}
           >
-            Scene A
-          </Text>
-          <Text
-            x={160}
-            y={95}
-            anchor="middle"
-            baseline="middle"
-            family={SANS}
-            weight={800}
-            size={32}
-            fill={C.warm}
-            style={{ opacity: round(presence(frame, 120, 240, 10, N)) }}
-          >
-            Scene B
-          </Text>
-        </WindowFrame>
+            <Text
+              x={160}
+              y={95}
+              anchor="middle"
+              baseline="middle"
+              family={SANS}
+              weight={800}
+              size={32}
+              fill={C.text}
+              style={{ opacity: round(presence(frame, 0, 120, 10, N)) }}
+            >
+              Scene A
+            </Text>
+            <Text
+              x={160}
+              y={95}
+              anchor="middle"
+              baseline="middle"
+              family={SANS}
+              weight={800}
+              size={32}
+              fill={C.warm}
+              style={{ opacity: round(presence(frame, 120, 240, 10, N)) }}
+            >
+              Scene B
+            </Text>
+          </WindowFrame>
+        </DirectionProvider>
       </Cell>
 
       {/* A full-frame wipe at the cut between "scenes". */}

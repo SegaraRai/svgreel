@@ -1,12 +1,15 @@
 export type { FontSpec, TextStyle } from "./fonts.js";
 export {
   defineComposition,
+  DirectionProvider,
   Sequence,
   useCurrentFrame,
+  useDirection,
   useParams,
   useVariant,
   useVideoConfig,
   type Composition,
+  type Direction,
   type Marker,
   type VideoConfig,
 } from "./timeline.js";
@@ -66,5 +69,11 @@ export {
 export { Terminal, terminalTimeline, type TerminalLine, type TerminalTheme } from "./components/Terminal.js";
 export { rotatorState, TextRotator, textRotatorWidth, type RotatorTiming } from "./components/TextRotator.js";
 export { Typewriter } from "./components/Typewriter.js";
-export { WindowFrame } from "./components/WindowFrame.js";
+export {
+  WindowFrame,
+  type WindowControls,
+  type WindowFrameProps,
+  type WindowPreset,
+  type WindowTitleAlign,
+} from "./components/WindowFrame.js";
 export { Wipe } from "./components/Wipe.js";

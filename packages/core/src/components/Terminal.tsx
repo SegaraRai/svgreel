@@ -2,7 +2,7 @@ import { blink, round, tween } from "../animation/helpers.js";
 import type { TextStyle } from "../fonts.js";
 import { useCurrentFrame } from "../timeline.js";
 import { measureText, Text } from "./Text.js";
-import { WindowFrame } from "./WindowFrame.js";
+import { windowChrome, WindowFrame, type WindowFrameProps } from "./WindowFrame.js";
 
 export interface TerminalTheme {
   background: string;
@@ -48,7 +48,8 @@ export function terminalTimeline(
   });
 }
 
-export interface TerminalProps extends TerminalTiming {
+export interface TerminalProps
+  extends TerminalTiming, Pick<WindowFrameProps, "preset" | "controls" | "controlsSide" | "titleAlign"> {
   lines: TerminalLine[];
   x?: number;
   y?: number;
@@ -81,10 +82,14 @@ export function Terminal({
   lineHeight = font.size * 1.6,
   padding = 16,
   caret = true,
+  preset,
+  controls,
+  controlsSide,
+  titleAlign,
   ...timing
 }: TerminalProps) {
   const frame = useCurrentFrame();
-  const bar = 40;
+  const bar = windowChrome({ preset }).barHeight;
   const times = terminalTimeline(lines, timing);
   const speed = timing.speed ?? 1.5;
   const promptW = measureText(`${prompt} `, font);
@@ -117,7 +122,10 @@ export function Terminal({
       height={height}
       title={title}
       font={font}
-      barHeight={bar}
+      preset={preset}
+      controls={controls}
+      controlsSide={controlsSide}
+      titleAlign={titleAlign}
       background={theme.background}
       bar={theme.bar}
       border={theme.border}

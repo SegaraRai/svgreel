@@ -86,6 +86,25 @@ export function useParams<S extends ParamSchema = ParamSchema>(): ParamsOf<S> {
   return useContext(ParamsContext) as ParamsOf<S>;
 }
 
+/** Writing direction: left-to-right or right-to-left. */
+export type Direction = "ltr" | "rtl";
+
+const DirectionContext = createContext<Direction>("ltr");
+
+/**
+ * Sets the writing direction for its children. Components that place things at a logical
+ * "start" or "end" (such as `<WindowFrame>`) read it with `useDirection()`. Without a provider
+ * the direction is "ltr". It doesn't change how `<Text>` lays out glyphs.
+ */
+export function DirectionProvider(props: { dir: Direction; children?: ReactNode }) {
+  return <DirectionContext.Provider value={props.dir}>{props.children}</DirectionContext.Provider>;
+}
+
+/** The writing direction set by the nearest `<DirectionProvider>`, or "ltr". */
+export function useDirection(): Direction {
+  return useContext(DirectionContext);
+}
+
 export function useVideoConfig(): VideoConfig {
   const c = useContext(ConfigContext);
   if (!c) {

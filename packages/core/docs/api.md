@@ -33,6 +33,8 @@ export default defineComposition({
 | `useVideoConfig()`                 | `{ width, height, fps, durationInFrames }`                              |
 | `useVariant()`                     | The variant being compiled, e.g. `{ theme: "dark", motion: "default" }` |
 | `useParams()`                      | The param values, e.g. `{ accent: "#7c3aed" }`                          |
+| `<DirectionProvider dir>`          | Sets the writing direction (`"ltr"` or `"rtl"`) for its children        |
+| `useDirection()`                   | The nearest provider's direction, or `"ltr"`                            |
 | `<Sequence from durationInFrames>` | Shifts time for its children and hides them outside the range           |
 
 ## Variants
@@ -186,7 +188,7 @@ All of these are pure functions of the frame number.
 | `<PillRow items at stagger gap …pill>`                                                           | Row of pills popping in                                                                                                                                                                                                                                                       |
 | `<DrawPath d progress>`                                                                          | Stroke that draws itself, 0 → 1                                                                                                                                                                                                                                               |
 | `<CodeBlock lines file lang theme font start speed>`                                             | Editor card with highlighting and typing. `codeBlockHeight()` measures it                                                                                                                                                                                                     |
-| `<WindowFrame width height title font>`                                                          | Window chrome; children are clipped to the content area                                                                                                                                                                                                                       |
+| `<WindowFrame width height title font preset controls controlsSide titleAlign>`                  | Window chrome; children are clipped to the content area. See "Window frames" below                                                                                                                                                                                            |
 | `<ProgressBar width value start marks>`                                                          | Track, fill and milestone dots                                                                                                                                                                                                                                                |
 | `<Wipe colors duration direction>`                                                               | Slanted bands sweeping the frame. Put it in a `<Sequence>` at the cut                                                                                                                                                                                                         |
 | `<Rings r color speed>`                                                                          | Decorative spinning rings                                                                                                                                                                                                                                                     |
@@ -202,6 +204,33 @@ All of these are pure functions of the frame number.
 | `<Terminal lines width height font theme prompt speed>`                                          | Terminal window replaying typed commands and output, scrolling when full. `terminalTimeline()` gives when each line starts                                                                                                                                                    |
 | `<Image src x y width height fit radius style>`                                                  | Embedded raster (or SVG) image, cropped to `fit` (`cover contain fill`) and rounded by `radius` (half the size for a circle). See "Images" below                                                                                                                              |
 | `useSvgId(prefix)`                                                                               | Unique id for gradients, masks, clip paths                                                                                                                                                                                                                                    |
+
+## Window frames
+
+`preset` picks the look of `<WindowFrame>` (and `<Terminal>`, which passes `preset`,
+`controls`, `controlsSide` and `titleAlign` on). Any of those props given explicitly, and
+`barHeight` and `radius`, override the preset. Colors stay separate: `background`, `bar`,
+`border`, `titleColor` and `controlColor` (default: `titleColor`).
+
+| `preset`          | `controls`       | `controlsSide` | `titleAlign` | `barHeight` | `radius` |
+| ----------------- | ---------------- | -------------- | ------------ | ----------- | -------- |
+| `macos` (default) | `traffic-lights` | `start`        | `center`     | 40          | 14       |
+| `windows`         | `glyphs`         | `end`          | `start`      | 32          | 8        |
+| `gnome`           | `close`          | `end`          | `center`     | 40          | 12       |
+| `plain`           | `none`           | `end`          | `center`     | 40          | 14       |
+
+`controls`: `traffic-lights` (red, yellow, green circles), `dots` (three circles in
+`controlColor`), `glyphs` (minimize, maximize, close), `close` (one × on a faint circle),
+`none`. `titleAlign`: `start`, `center`, `end`, `left`, `right`. `start` and `end` (for the title
+and the buttons) follow `useDirection()`: under `<DirectionProvider dir="rtl">` the buttons
+move to the other side, mirrored. A centered title is centered on the whole bar, so keep it
+short enough to clear the buttons.
+
+```tsx
+<WindowFrame preset="windows" titleAlign="center" width={480} height={300} title="app" font={font}>
+  …
+</WindowFrame>
+```
 
 ## Images
 
