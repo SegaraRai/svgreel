@@ -24,6 +24,7 @@ export default defineComposition({
   stillFrame: 120,            // frame for *.still.svg (default: last)
   title: "Accessible label",
   markers: [{ frame: 0, label: "intro" }], // jump targets in the preview
+  audio: { src: "music.mp3", offset: 0 }, // played by the preview, not in the SVG; see audio.md
 });
 ```
 
@@ -143,6 +144,41 @@ All of these are pure functions of the frame number.
 | `random(seed)`                                                                                                             | Deterministic number in [0, 1) per seed. Use instead of `Math.random()`, which changes every frame                             |
 | `noise1D(x, seed, repeat?)`, `noise2D(x, y, seed)`                                                                         | Smooth value noise in [-1, 1]. With `repeat`, the 1D curve repeats, for wobble that loops                                      |
 | `pathGeometry(d)` → `{ length, at(t) }`, `pointOnPath(d, t)`                                                               | Length of SVG path data and `{ x, y, angle }` at a fraction of it, without a DOM. `angle` is continuous, so it can be animated |
+
+## Beat sync
+
+Timing from a `BeatMap` written by `tools/beatmap.py` (see [audio.md](audio.md)). Import the
+JSON and annotate it: `const beats: BeatMap = beatsJson`. Everything applies the composition's
+`audio.offset` unless you pass `offset`.
+
+**Placing things on the music.** `useBeatGrid(map)` returns frames in the current `<Sequence>`'s
+time, ready for a nested `<Sequence from>` or an animation's `delay`. `beatGrid(map, { fps,
+offset })` is the same in composition frames, for use outside components (`durationInFrames`,
+`markers`).
+
+|                                        |                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `grid.bar(n, pos = 1)`                 | Frame of bar `n` (0 = first downbeat), beat `pos`; a `pos` past the bar continues into the next |
+| `grid.beat(i)`                         | Frame of beat `i` (an index into `map.beats`)                                                   |
+| `grid.section(i)`                      | Frame where section `i` starts (0 = the audio's start); throws past the last section            |
+| `grid.time(seconds)`                   | Frame showing that moment of the audio file (narration cues), rounded down                      |
+| `grid.prev / next / snap(frame, unit)` | Last at or before, first at or after, nearest; `unit` `"beat"` (default) or `"bar"`             |
+| `grid.at(frame)`                       | The beat at `frame`, as `useBeat()` returns it                                                  |
+| `grid.barCount`, `grid.sectionCount`   | Bars from the first downbeat on; sections including the one before the first boundary           |
+
+Beats and bars past either end are extrapolated at `bpm` and `meter`, so
+`grid.bar(grid.barCount)` is where the last bar ends.
+
+**Reacting to the music.** These follow the composition's timeline, not `<Sequence>` time.
+
+|                                                  |                                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `useBeat(map, { offset })`                       | `{ index, pos, bar, since, length, progress, db, isDownbeat }` for the current beat               |
+| `useSection(map, { offset })`                    | `{ index, since }`: current section (0 before the first boundary) and frames since it started     |
+| `useOnset(map, { minStrength = 0.4, offset })`   | `{ since, strength }` of the latest onset at or above `minStrength` (`since` Infinity before one) |
+| `useBeatConfidence(map, { fade = 0.5, offset })` | 1 where the beat is clear, 0 inside `lowConfidence` stretches; scale hits by it                   |
+| `useTempo(map, { offset })`                      | `{ bpm, free, index }` of the current tempo segment (`bpm` null in free time)                     |
+| `decay(since, fps, halfLife = 0.08)`             | 1 on a hit's frame, halving every `halfLife` seconds; 0 before the hit and once below 0.02        |
 
 ## Text
 

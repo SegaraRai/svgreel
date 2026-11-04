@@ -93,3 +93,10 @@ under `prefers-reduced-motion` (`<Once>` content shows its last frame).
 An SVG shown as an image loads nothing from the network, so `<image href="https://…">` stays
 blank. Use `<Image>` (or `loadImage()` / `fetchImage()` for a raw `<image>`), which embeds the
 file as a `data:` URI. Keep images small: they are copied into every output file.
+
+## 10. Audio stays out of the SVG
+
+A composition's `audio` plays only in the preview; the SVG is silent and loads nothing. The beat
+hooks (`useBeat`, `useSection`, …) read the composition's frame, not `<Sequence>` time, because
+the audio plays on the composition's timeline; `useBeatGrid()` returns frames in `<Sequence>`
+time, for `from` and `delay`. See [audio.md](audio.md).

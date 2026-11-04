@@ -84,6 +84,10 @@ export function App() {
     setFocus(null);
   }, [comp?.name, comp?.fps, comp?.durationInFrames]);
 
+  useEffect(() => {
+    clock.setAudio(comp?.audio?.file ?? null, comp?.audio?.offset ?? 0);
+  }, [comp?.audio?.file, comp?.audio?.offset]);
+
   const built = (comp?.outputs ?? []).filter(
     (o) => Object.entries(o.variant).every(([k, v]) => !hidden.has(`${k}=${v}`)) && (!focus || o.file === focus),
   );
@@ -349,6 +353,9 @@ const SPEEDS = [0.1, 0.25, 0.5, 1, 2];
 
 function Transport({ comp }: { comp: CompositionData }) {
   useSyncExternalStore(clock.subscribe, clock.snapshot);
+  // Browsers start audio only after a click, so turning sound on is itself the gesture.
+  const [sound, setSound] = usePref<"on" | "off">("sound", "off");
+  useEffect(() => clock.set({ sound: sound === "on" }), [sound]);
   const n = comp.durationInFrames;
   const frame = Math.floor(clock.frame);
   const marks = useMemo(
@@ -493,6 +500,12 @@ function Transport({ comp }: { comp: CompositionData }) {
         <input type="checkbox" checked={clock.loop} onChange={(e) => clock.set({ loop: e.target.checked })} />
         loop
       </label>
+      {comp.audio && (
+        <label {...style(check)} title="Play the composition's audio in sync (at 1× speed)">
+          <input type="checkbox" checked={clock.sound} onChange={(e) => setSound(e.target.checked ? "on" : "off")} />
+          sound
+        </label>
+      )}
     </footer>
   );
 }

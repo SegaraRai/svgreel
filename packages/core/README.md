@@ -87,6 +87,7 @@ installed version:
 - [api.md](docs/api.md): components, animation helpers, fonts
 - [text.md](docs/text.md): how text is rendered, and its limits
 - [embedding.md](docs/embedding.md): using the output in a README or elsewhere
+- [audio.md](docs/audio.md): a sound track in the preview, and timing motion to music
 
 Working examples are in [examples/](examples/), also shipped at `node_modules/svgreel/examples/`.
 

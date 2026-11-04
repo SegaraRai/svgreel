@@ -9,6 +9,7 @@ export {
   useVariant,
   useVideoConfig,
   type Composition,
+  type CompositionAudio,
   type Direction,
   type Marker,
   type VideoConfig,
@@ -28,6 +29,21 @@ export {
 } from "./params.js";
 export { defineVariants, type PredefinedVariants, type Variant, type VariantAxes, type VariantOf } from "./variants.js";
 
+export {
+  beatGrid,
+  decay,
+  useBeatGrid,
+  useBeat,
+  useBeatConfidence,
+  useOnset,
+  useSection,
+  useTempo,
+  type BeatGrid,
+  type BeatMap,
+  type BeatOptions,
+  type BeatState,
+  type BeatUnit,
+} from "./animation/beats.js";
 export { charAnimations } from "./animation/charAnimations.js";
 export { interpolateColors, mixColors, parseColor, withAlpha } from "./animation/color.js";
 export { Easing, type EasingFn } from "./animation/easing.js";

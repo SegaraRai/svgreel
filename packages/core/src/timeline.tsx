@@ -16,6 +16,17 @@ export interface Marker {
   label: string;
 }
 
+/** A sound track for the preview and for beat timing. It is never put into the SVG. */
+export interface CompositionAudio {
+  /** Audio file (mp3, wav, ogg, …), relative to the composition's folder: `"music.mp3"`. */
+  src: string;
+  /**
+   * Seconds on the timeline at which the file's 0 s plays (default 0). Negative skips the start
+   * of the file: -12 starts the composition 12 s into the song. Beat hooks apply it too.
+   */
+  offset?: number;
+}
+
 export interface Composition extends VideoConfig {
   component: ComponentType;
   /**
@@ -36,6 +47,11 @@ export interface Composition extends VideoConfig {
   title?: string;
   /** Named points on the timeline (scene starts, etc.), shown as jump targets in the preview. */
   markers?: Marker[];
+  /**
+   * Music or narration that the motion is timed to. The preview plays it in sync; the SVG stays
+   * silent. See docs/audio.md.
+   */
+  audio?: CompositionAudio;
 }
 
 export function defineComposition(c: Composition): Composition {
@@ -43,6 +59,8 @@ export function defineComposition(c: Composition): Composition {
 }
 
 const FrameContext = createContext<number>(0);
+/** The composition-level frame, unaffected by <Sequence>. */
+const TimelineFrameContext = createContext<number>(0);
 const ConfigContext = createContext<VideoConfig | null>(null);
 const VariantContext = createContext<Variant>({ motion: "default" });
 const ParamsContext = createContext<ParamValues>({});
@@ -58,11 +76,27 @@ export function TimelineProvider(props: {
     <ConfigContext.Provider value={props.config}>
       <VariantContext.Provider value={props.variant ?? { motion: "default" }}>
         <ParamsContext.Provider value={props.params ?? {}}>
-          <FrameContext.Provider value={props.frame}>{props.children}</FrameContext.Provider>
+          <TimelineFrameContext.Provider value={props.frame}>
+            <FrameContext.Provider value={props.frame}>{props.children}</FrameContext.Provider>
+          </TimelineFrameContext.Provider>
         </ParamsContext.Provider>
       </VariantContext.Provider>
     </ConfigContext.Provider>
   );
+}
+
+/**
+ * Frame on the composition's own timeline, ignoring <Sequence> shifts. The audio track plays on
+ * this timeline, so beat hooks use it. Internal: not exported from the package.
+ */
+export function useTimelineFrame(): number {
+  return useContext(TimelineFrameContext);
+}
+
+/** The composition's audio offset in seconds (0 without audio). Internal. */
+export function useAudioOffset(): number {
+  const c = useContext(ConfigContext) as Partial<Composition> | null;
+  return c?.audio?.offset ?? 0;
 }
 
 /** Current frame, relative to the innermost <Sequence>. Same semantics as Remotion. */

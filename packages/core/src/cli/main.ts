@@ -125,6 +125,8 @@ export interface Manifest {
   params: ParamInfo[];
   /** Param keys set with --param. */
   overridden: string[];
+  /** The composition's audio, copied to <out>/_audio/ for the preview. */
+  audio?: { file: string; offset: number };
   outputs: Output[];
   stats?: {
     frames: number;
@@ -159,6 +161,21 @@ async function loadComposition(name: string): Promise<{ comp: Composition; overr
   return { comp, overrides };
 }
 
+/**
+ * Copies a composition's audio to <out>/_audio/<name>.<ext> for the preview. Outside
+ * <out>/<name>/ on purpose: that folder holds only the SVGs people copy into their README.
+ */
+function copyAudio(name: string, src: string, offset: number): Manifest["audio"] {
+  const from = path.resolve(COMPOSITIONS, name, src);
+  if (!fs.existsSync(from) || !fs.statSync(from).isFile()) {
+    throw new Error(`audio.src "${src}" not found (looked for ${path.relative(ROOT, from)})`);
+  }
+  const file = `_audio/${name}${path.extname(from).toLowerCase()}`;
+  fs.mkdirSync(path.join(OUT, "_audio"), { recursive: true });
+  fs.copyFileSync(from, path.join(OUT, file));
+  return { file, offset };
+}
+
 async function buildOne(name: string): Promise<boolean> {
   const dir = path.join(OUT, name);
   fs.rmSync(dir, { recursive: true, force: true });
@@ -189,8 +206,10 @@ async function buildOne(name: string): Promise<boolean> {
         };
       }
     }
+    const audio = comp.audio && copyAudio(name, comp.audio.src, comp.audio.offset ?? 0);
     const ms = Math.round(performance.now() - t0);
     manifest = {
+      audio,
       name,
       title: comp.title,
       width: comp.width,

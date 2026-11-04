@@ -28,6 +28,8 @@ export interface CompositionData {
   params: ParamInfo[];
   /** Param keys set with --param. */
   overridden: string[];
+  /** Audio played in sync with the timeline; `file` is relative to the preview page. */
+  audio?: { file: string; offset: number };
   outputs: Output[];
   stats?: {
     frames: number;

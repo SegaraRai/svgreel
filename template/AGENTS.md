@@ -134,6 +134,8 @@ The docs ship with the installed package, so they always match its version:
 - `node_modules/svgreel/docs/text.md`: fonts, fallback, wrapping, and the limits of text
   rendering.
 - `node_modules/svgreel/docs/embedding.md`: publishing the result.
+- `node_modules/svgreel/docs/audio.md`: music or narration in the preview, and timing motion to
+  the beat (only when the user brings audio).
 
 Guidelines:
 

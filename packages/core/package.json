@@ -22,7 +22,8 @@
   "files": [
     "dist",
     "docs",
-    "examples"
+    "examples",
+    "tools"
   ],
   "type": "module",
   "exports": {
